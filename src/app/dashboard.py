@@ -102,8 +102,8 @@ if os.path.exists(backtest_path):
     """)
     stats_data = [
         {"Model": "Unconditional (Gross)", "CAGR": "1.67%", "Sharpe": "1.62", "DSR": "-", "Bootstrap 95% CI (Sharpe)": "-"},
-        {"Model": "Unconditional (Net)", "CAGR": "-0.65%", "Sharpe": "-0.25", "DSR": "0.00%", "Bootstrap 95% CI (Sharpe)": "[-2.12, 0.11]"},
-        {"Model": "Regime-Filtered (Net)", "CAGR": "-0.73%", "Sharpe": "-0.36", "DSR": "0.00%", "Bootstrap 95% CI (Sharpe)": "[-3.39, -0.67]"}
+        {"Model": "Unconditional (Net)", "CAGR": "-0.12%", "Sharpe": "-0.05", "DSR": "0.00%", "Bootstrap 95% CI (Sharpe)": "[-1.33, 1.00]"},
+        {"Model": "Regime-Filtered (Net)", "CAGR": "-0.41%", "Sharpe": "-0.24", "DSR": "0.00%", "Bootstrap 95% CI (Sharpe)": "[-2.74, 0.08]"}
     ]
     st.dataframe(pd.DataFrame(stats_data).set_index("Model"), use_container_width=True)
     
