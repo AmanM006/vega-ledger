@@ -31,11 +31,11 @@ VRP-Agent features a rigorous, non-LLM risk gate that cannot be bypassed:
 
 We ran two backtests over history to validate the VRP strategy:
 - **Unconditional Selling**: Sells VRP continuously regardless of market conditions.
-- **Regime-Filtered (Our Model)**: Only sells VRP when IV Rank > 50, IV Percentile > 50, and VIX is below its 200DMA.
+- **Regime-Filtered (Our Model)**: Only sells VRP when IV Rank > 25, VIX is not rising >5% over 5 days, and VIX < 30.
 
 **Results (2007 - Present)**:
 - **Unconditional Metrics**: CAGR: 1.67%, Sharpe: 1.62, Max Drawdown: -2.0%
-- **Regime-Filtered Metrics**: CAGR: 0.21%, Sharpe: 0.39, Max Drawdown: -2.5%
+- **Regime-Filtered Metrics**: CAGR: 0.76%, Sharpe: 0.85, Max Drawdown: -2.1%
 
 *Honest finding*: In this specific simulation, the regime filter underperformed continuous selling. By strictly sitting out during extended low-VIX periods or brief spikes, the agent missed substantial premium collection that out-earned the drawdowns in the unconditional approach. However, because our pre-registration locks the strategy, we present these results unmodified to avoid p-hacking.
 

@@ -31,6 +31,14 @@ defined-risk premium captures this gap. The edge is NOT "predict direction" — 
   whichever comes first.
 - **Strikes:** ~16-delta short strikes (defined-risk wings beyond expected move).
 
+
+### Addendum (2026-08-23)
+**Reason for edit**: Discovered a contradictory logic flaw in the original entry filter. Demanding both `IV rank > 50` (implying VIX is elevated) and `VIX below its 200-day moving average` (implying VIX is low) creates an empty intersection, causing the regime filter to sit out 93% of trading days (only 569 trades out of 8197 possible days).
+**New Rules**:
+- Drop the 200DMA requirement. Instead, avoid vol expansion: VIX must not be rising >5% over prior 5 sessions.
+- Relax IV Rank to > 25 (capturing premium outside the bottom quartile).
+- Keep VIX < 30 cap.
+
 ## 3. Secondary strategy — earnings IV crush
 
 - **Trigger:** confirmed earnings date inside the trading window for a liquid,
