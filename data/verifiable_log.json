@@ -1,0 +1,30 @@
+[
+  {
+    "entry": {
+      "timestamp": "2026-08-23T13:38:15.097302",
+      "market_data": {
+        "spy_price": 450.0,
+        "vix_now": 18.5,
+        "vix_200dma": 20.0,
+        "vix_5d_ago": 17.0,
+        "iv_rank": 55.0,
+        "iv_percentile": 60.0
+      },
+      "regime_signal": {
+        "tradeable": true,
+        "reasons": []
+      },
+      "risk_evaluation": {
+        "verdict": "approve",
+        "reasons": [
+          "all checks passed"
+        ]
+      },
+      "execution_result": {
+        "status": "success",
+        "order_id": "mock-order-123"
+      }
+    },
+    "hash": "3d35b2bb245aa4935cd4a61e746021b94b618397824e2fd0286f16701d7830cd"
+  }
+]
