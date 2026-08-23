@@ -12,7 +12,7 @@ Unlike many competitors who use a "bull/bear/neutral LLM-debate" architecture, V
 
 **Sleeve 1 — VRP Premium**: SPY iron condors at 45 DTE / 16-delta when regime filter passes (VIX not rising >5%/5d, IV Rank > 25, VIX < 30).
 
-**Sleeve 2 — Earnings IV-Crush**: Iron condors placed 1-3 days before a confirmed earnings print, strikes sized beyond the ATM straddle-implied expected move. Closes immediately after the print. Entry confirmed for LULU (Sep 3 AMC) using live straddle data from yfinance.
+**Sleeve 2 — Earnings IV-Crush**: Symmetric iron condors placed 1-3 days before a confirmed earnings print. Both short strikes are placed equidistant from current price, each 1x the ATM straddle price OTM — delta-neutral, profits from IV crush if the stock moves less than the market-implied range in either direction. Only one confirmed liquid opportunity exists in the live window: LULU (Sep 3 AMC). This is one high-conviction backtested single-name trade, sized per the risk gate, not a "broad earnings sleeve."
 
 ## 2. Infrastructure: Alpaca API
 
