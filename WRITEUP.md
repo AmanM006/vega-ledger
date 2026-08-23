@@ -49,7 +49,12 @@ Our live execution demonstrates risk management, not alpha generation.
 
 Because the systematic VRP strategy is rejected, our live P&L for the hackathon (Aug 31–Sep 4) rests on an uncorrelated, single-name opportunistic trade:
 - **Earnings IV-Crush Sleeve**: Proposes symmetric iron condors 1-3 days before confirmed earnings prints, sizing strikes strictly outside the straddle-implied move. 
-- **The Setup**: Only one liquid, high-conviction opportunity exists this week—**LULU (Sep 3 AMC)**. The agent will size it purely off the live straddle data via Alpaca, bound by the deterministic risk gate.
+- **The Setup**: Only one liquid opportunity exists this week—**LULU (Sep 3 AMC)**. 
+- **Consistency in Rigor**: We applied the exact same friction model ($0.48 round trip per contract) to our LULU earnings backtest (N=24 historical prints). 
+  - *Result*: While LULU boasts a 79.2% gross win rate, the **Net Sharpe is -0.28**. 
+  - We explicitly note that 24 events is far too thin a sample size for DSR/bootstrap confidence, but even within this limited proxy, transaction costs erase the edge.
+
+The agent will size and execute the LULU trade purely as a live orchestration demonstration of the risk gate. We do not claim this will generate expected alpha.
 
 ## 6. Verifiable Log (Tamper-Detection)
 Every agent decision is appended to a hash-chained JSON log (`data/verifiable_log.json`). Judges can run `make verify` (or `python verify_log.py`) locally. If a single byte of past decision-making is altered post-trade, the cryptographic chain loudly fails. Trust is proven mathematically, not promised.
