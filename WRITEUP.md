@@ -1,4 +1,4 @@
-﻿# VRP-Agent: Autonomous Options Trading
+# VRP-Agent: Autonomous Options Trading
 
 **Hackathon**: Alpaca AI Trading Agents Hackathon
 **Track**: Options Trading
@@ -6,41 +6,64 @@
 
 ## 1. AI Logic & Orchestration
 
-VRP-Agent uses an orchestrated multi-agent framework built with **LangGraph** to process market data and manage state. 
+VRP-Agent uses a two-sleeve, multi-node LangGraph pipeline. Both sleeves run independently and converge at a shared deterministic risk gate before any order is submitted.
 
-Unlike many competitors who use a "bull/bear/neutral LLM-debate" architecture, VRP-Agent explicitly rejects LLM debate for directional positioning. Recent research (TiMi, ICLR 2026, arXiv:2510.04787) demonstrates that debate-style anthropomorphic agents introduce emotional bias and drift into consensus thinking. Instead, VRP-Agent relies on **deterministic, mechanical rationality**. The agent pulls structured market data via the **Alpaca MCP server**, applies a strict regime-conditional filter for Variance Risk Premium (VRP) harvesting, and computes optimal strikes using Black-Scholes. The LLM's role is strictly orchestrating the pipeline, summarizing the regime status, and appending to a hash-chained, verifiable log.
+Unlike many competitors who use a "bull/bear/neutral LLM-debate" architecture, VRP-Agent explicitly rejects LLM debate for directional positioning. Recent research (TiMi, ICLR 2026, arXiv:2510.04787) demonstrates that debate-style anthropomorphic agents introduce emotional bias and drift into consensus thinking. Instead, VRP-Agent relies on **deterministic, mechanical rationality**. The LLM's role is strictly orchestrating the pipeline, summarizing the regime status, and appending to a hash-chained, verifiable log.
 
-## 2. Infrastructure: Alpaca MCP Server
+**Sleeve 1 — VRP Premium**: SPY iron condors at 45 DTE / 16-delta when regime filter passes (VIX not rising >5%/5d, IV Rank > 25, VIX < 30).
 
-The entire data and execution layer runs through the **Alpaca MCP Server**:
-1. **Market Data Retrieval**: Fetching current SPY pricing, VIX metrics, and implied volatility (via option chains).
-2. **Order Execution**: Submitting multi-leg options orders (iron condors/credit spreads) to a funded Alpaca paper trading account.
-3. **Corporate Actions**: Querying the earnings calendar for our secondary IV-crush strategy.
+**Sleeve 2 — Earnings IV-Crush**: Iron condors placed 1-3 days before a confirmed earnings print, strikes sized beyond the ATM straddle-implied expected move. Closes immediately after the print. Entry confirmed for LULU (Sep 3 AMC) using live straddle data from yfinance.
 
-Every step runs autonomously, and Alpaca-py wraps the raw data payloads cleanly into our LangGraph StateGraph.
+## 2. Infrastructure: Alpaca API
 
-## 3. Risk Gates (Deterministic)
+The execution and market data layer runs through the **Alpaca Trading API** (`alpaca-py`):
+1. **Market Data**: Real-time SPY ask prices via `StockHistoricalDataClient`, VIX regime via yfinance.
+2. **Account State**: Live equity and daily P&L from `TradingClient.get_account()`.
+3. **Order Execution**: `MarketOrderRequest` / `OptionOrderRequest` submitted to a funded paper account.
+4. **Position Monitoring**: `get_all_positions()` used to compute current short-vol exposure before each trade.
 
-VRP-Agent features a rigorous, non-LLM risk gate that cannot be bypassed:
-- **Per-Trade Max Loss**: Capped at ≤ 2% of account equity.
+Every decision, market state, and execution result is appended to a hash-chained JSON log in `data/verifiable_log.json`.
+
+## 3. Risk Gates (Deterministic — cannot be bypassed)
+
+One gate, one source of truth (`src/risk/gate.py`). Every proposed trade passes through `evaluate()`:
+
+- **Per-Trade Max Loss**: ≤ 2% of account equity.
 - **VIX-Scaled Portfolio Cap**: 25% exposure below VIX 22; 15% between VIX 22-30; 5% above VIX 30.
-- **Circuit Breaker**: Halts trading if daily drawdown hits limits.
-- **Macro Avoidance**: No entries within 24 hours of scheduled Fed/macro prints.
+- **Circuit Breaker**: Halts if daily drawdown > 3%.
+- **Macro Avoidance**: No entries within 24h of scheduled Fed/macro prints.
+- **Earnings Sleeve Bypass**: `is_earnings_sleeve=True` on `ProposedTrade` skips the VIX-regime veto and standard exposure cap — earnings trades have their own uncorrelated risk profile.
 
 ## 4. Backtest Results
 
-We ran two backtests over history to validate the VRP strategy:
-- **Unconditional Selling**: Sells VRP continuously regardless of market conditions.
-- **Regime-Filtered (Our Model)**: Only sells VRP when IV Rank > 25, VIX is not rising >5% over 5 days, and VIX < 30.
+### VRP Sleeve (2007–Present, `src/backtest/run.py`)
 
-**Results (2007 - Present)**:
-- **Unconditional Metrics**: CAGR: 1.67%, Sharpe: 1.62, Max Drawdown: -2.0%
-- **Regime-Filtered Metrics**: CAGR: 0.76%, Sharpe: 0.85, Max Drawdown: -2.1%
+Two models run over 8,197 trading days using VIX as an IV proxy and Black-Scholes pricing:
 
-*Honest finding*: In this specific simulation, the regime filter underperformed continuous selling. By strictly sitting out during extended low-VIX periods or brief spikes, the agent missed substantial premium collection that out-earned the drawdowns in the unconditional approach. However, because our pre-registration locks the strategy, we present these results unmodified to avoid p-hacking.
+| Model | CAGR | Sharpe | Max Drawdown |
+|---|---|---|---|
+| Unconditional selling | 1.67% | 1.62 | -2.06% |
+| Regime-filtered (our model) | 0.76% | 0.85 | -2.14% |
 
-## 5. Known Limitations (per Pre-Registration)
-- Backtest options data quality/availability is limited on free sources — historical IV surfaces were approximated using VIX. 
-- The live trading window is ~4.5 sessions (Aug 31 - Sep 4). Not enough trades for the VRP edge to prove out statistically in-sample; the backtest is the evidence base, the live week is a demonstration.
-- Early assignment risk on short legs is not fully simulated in paper trading.
-- Historical earnings sleeve backtests were omitted due to lack of free historical earnings calendar data.
+**Honest finding**: The regime filter does NOT improve Sharpe or reduce drawdown vs unconditional selling. The filter reduces participation to ~23% of trading days, sacrificing too much premium. The claim that "regime filtering improves risk-adjusted returns" is **dropped from the pitch**. The pitch instead rests on: pre-registered honesty, deterministic risk gates, and the earnings sleeve as an uncorrelated second income stream.
+
+### Earnings Sleeve (`src/backtest/earnings_backtest.py`)
+
+Historical earnings events for LULU and CIEN, using 30-day realized volatility as an IV proxy (true historical IV surfaces require paid data — limitation explicitly disclosed):
+
+| Ticker | Events | Win Rate | Avg P&L | Sharpe |
+|---|---|---|---|---|
+| LULU | 24 | **79.2%** | $26/event | 0.34 |
+| CIEN | 24 | 20.8% | -$95/event | -0.89 |
+
+**CIEN dropped from live trading**: Avg actual move (9.8%) exceeds the 30-day HV proxy (3.1%) by 3x, meaning CIEN regularly gaps far past the short strikes. CIEN's backtest is a genuine loss in this proxy model. **LULU only** remains in the live earnings sleeve.
+
+**Caveat**: These earnings P&L numbers use credit estimated at 30% of wing width (conservative). True P&L requires live historical IV data. Numbers should be treated as directional proxies, not precise forecasts.
+
+## 5. Known Limitations (per Pre-Registration §6)
+
+- VRP backtest options pricing approximated via VIX (no free historical IV surface data).
+- Earnings backtest uses 30-day HV as IV proxy, not actual pre-earnings implied volatility.
+- The live trading window is ~4.5 sessions (Aug 31–Sep 4) — insufficient for statistical proof of edge; backtest is the evidence base.
+- Early assignment risk on short legs not fully simulated in paper trading.
+- The pre-registration required a dated addendum (Aug 23) to fix a logical contradiction in the original regime filter (IV Rank > 50 AND VIX < 200DMA were mutually exclusive conditions that caused 93% sit-out rate).
