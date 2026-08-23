@@ -21,8 +21,8 @@ from risk.gate import evaluate, ProposedTrade, AccountState, Verdict
 from strategy.regime import check_regime
 
 # Paper trading keys provided
-ALPACA_API_KEY = os.getenv("ALPACA_API_KEY", "ALPACA_KEY_REDACTED")
-ALPACA_SECRET_KEY = os.getenv("ALPACA_SECRET_KEY", "ALPACA_SECRET_REDACTED")
+ALPACA_API_KEY = os.environ["ALPACA_API_KEY"]
+ALPACA_SECRET_KEY = os.environ["ALPACA_SECRET_KEY"]
 
 trading_client = TradingClient(ALPACA_API_KEY, ALPACA_SECRET_KEY, paper=True)
 data_client = StockHistoricalDataClient(ALPACA_API_KEY, ALPACA_SECRET_KEY)
