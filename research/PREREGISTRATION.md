@@ -78,3 +78,9 @@ defined-risk premium captures this gap. The edge is NOT "predict direction" — 
   base, the live week is a demonstration, not a proof.
 - Early assignment risk on short legs is a known, documented gap — not fully
   simulated in paper trading.
+
+### Addendum: 2026-08-24 (Pre-Live Friction Adjustment & Strategy Rejection)
+**Issue:** When subjecting the strategy to a realistic transaction cost model (.05 spread + .01 slippage per leg = .48 round trip per contract), the transaction costs consumed >28% of the gross credit on -wide wings, driving Net Sharpe below zero.
+**Adjustment:** We widened the wings to -wide and halved the contract quantity from 2 to 1. This keeps the max loss capital exactly the same (~,000) while halving the transaction cost per dollar of credit collected.
+**Result:** Even with the optimized structural execution, the Deflated Sharpe Ratio (DSR) remained 0.00% and Bootstrap CIs largely straddled or fell below zero.
+**Conclusion:** The systematic VRP strategy has **no statistically defensible net edge** after realistic friction. We will allow the agent to run live as an orchestration demonstration, but the core VRP strategy is officially rejected by our own validation tooling. The live P&L focus shifts entirely to the LULU earnings condor.

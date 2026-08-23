@@ -68,7 +68,9 @@ def run_backtest(df, use_regime_filter=True, apply_costs=False):
                     'exit_date': date,
                     'pnl': trade_pnl,
                     'per_share_pnl': per_share_pnl,
-                    'reason': exit_reason
+                    'reason': exit_reason,
+                    'credit_received': trade['credit_received'],
+                    'qty': trade['qty']
                 })
                 continue
                 
@@ -93,8 +95,8 @@ def run_backtest(df, use_regime_filter=True, apply_costs=False):
             initial_iv = vix / 100.0
             sc_strike = get_strike_for_delta(spy_price, T_initial, r, initial_iv, 0.16, 'c')
             sp_strike = get_strike_for_delta(spy_price, T_initial, r, initial_iv, -0.16, 'p')
-            lc_strike = sc_strike + 10
-            lp_strike = sp_strike - 10
+            lc_strike = sc_strike + 20
+            lp_strike = sp_strike - 20
             
             sc_price = bs_price(spy_price, sc_strike, T_initial, r, initial_iv, 'c')
             lc_price = bs_price(spy_price, lc_strike, T_initial, r, initial_iv, 'c')
@@ -104,9 +106,9 @@ def run_backtest(df, use_regime_filter=True, apply_costs=False):
             credit = sc_price - lc_price + sp_price - lp_price
             
             if credit > 0.5:
-                width = 10
+                width = 20
                 max_loss_per_contract = (width - credit) * 100
-                qty = 2
+                qty = 1
                 
                 proposed = ProposedTrade(
                     strategy="vrp_premium",
