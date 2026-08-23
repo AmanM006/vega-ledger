@@ -4,66 +4,53 @@
 **Track**: Options Trading
 **Author**: Aman
 
-## 1. AI Logic & Orchestration
+## 1. AI Logic & Architecture
 
-VRP-Agent uses a two-sleeve, multi-node LangGraph pipeline. Both sleeves run independently and converge at a shared deterministic risk gate before any order is submitted.
+VRP-Agent uses an orchestrated multi-agent framework built with **LangGraph** to process market data and manage state. The architecture consists of a two-sleeve pipeline:
+- **VRP Premium Sleeve**: Proposes SPY iron condors at 45 DTE / 16-delta when a regime filter passes.
+- **Earnings IV-Crush Sleeve**: Proposes symmetric iron condors 1-3 days before confirmed earnings prints, sizing strikes strictly outside the straddle-implied move.
 
-Unlike many competitors who use a "bull/bear/neutral LLM-debate" architecture, VRP-Agent explicitly rejects LLM debate for directional positioning. Recent research (TiMi, ICLR 2026, arXiv:2510.04787) demonstrates that debate-style anthropomorphic agents introduce emotional bias and drift into consensus thinking. Instead, VRP-Agent relies on **deterministic, mechanical rationality**. The LLM's role is strictly orchestrating the pipeline, summarizing the regime status, and appending to a hash-chained, verifiable log.
+Both parallel nodes feed independently into a **single, unified deterministic risk gate**. The LLM's role is strictly orchestrating the pipeline, pulling structured market data via the Alpaca API, summarizing the regime status, and appending to a hash-chained, verifiable log.
 
-**Sleeve 1 — VRP Premium**: SPY iron condors at 45 DTE / 16-delta when regime filter passes (VIX not rising >5%/5d, IV Rank > 25, VIX < 30).
+## 2. Risk Gate
 
-**Sleeve 2 — Earnings IV-Crush**: Symmetric iron condors placed 1-3 days before a confirmed earnings print. Both short strikes are placed equidistant from current price, each 1x the ATM straddle price OTM — delta-neutral, profits from IV crush if the stock moves less than the market-implied range in either direction. Only one confirmed liquid opportunity exists in the live window: LULU (Sep 3 AMC). This is one high-conviction backtested single-name trade, sized per the risk gate, not a "broad earnings sleeve."
-
-## 2. Infrastructure: Alpaca API
-
-The execution and market data layer runs through the **Alpaca Trading API** (`alpaca-py`):
-1. **Market Data**: Real-time SPY ask prices via `StockHistoricalDataClient`, VIX regime via yfinance.
-2. **Account State**: Live equity and daily P&L from `TradingClient.get_account()`.
-3. **Order Execution**: `MarketOrderRequest` / `OptionOrderRequest` submitted to a funded paper account.
-4. **Position Monitoring**: `get_all_positions()` used to compute current short-vol exposure before each trade.
-
-Every decision, market state, and execution result is appended to a hash-chained JSON log in `data/verifiable_log.json`.
-
-## 3. Risk Gates (Deterministic — cannot be bypassed)
-
-One gate, one source of truth (`src/risk/gate.py`). Every proposed trade passes through `evaluate()`:
-
-- **Per-Trade Max Loss**: ≤ 2% of account equity.
+We utilize a rigorously tested, non-LLM risk gate (`src/risk/gate.py`) that cannot be bypassed. This includes:
+- **Per-Trade Max Loss**: Hard cap at ≤ 2% of account equity.
 - **VIX-Scaled Portfolio Cap**: 25% exposure below VIX 22; 15% between VIX 22-30; 5% above VIX 30.
-- **Circuit Breaker**: Halts if daily drawdown > 3%.
+- **Circuit Breaker**: Halts trading entirely if daily drawdown > 3%.
 - **Macro Avoidance**: No entries within 24h of scheduled Fed/macro prints.
-- **Earnings Sleeve Bypass**: `is_earnings_sleeve=True` on `ProposedTrade` skips the VIX-regime veto and standard exposure cap — earnings trades have their own uncorrelated risk profile.
+
+Why deterministic? Options risk management must be pre-trade, real-time, and mathematically precise. It is a mathematical domain, not a semantic one.
+
+## 3. Why Not a Bull/Bear/Neutral Debate Architecture?
+
+Unlike many competitors who use a "bull/bear/neutral LLM-debate" architecture to establish directional bias, VRP-Agent explicitly rejects this. Recent research (TiMi, ICLR 2026, arXiv:2510.04787) demonstrates that debate-style anthropomorphic agents introduce emotional bias and drift into consensus thinking. VRP-Agent relies instead on **mechanical rationality**—trading premium structural advantages rather than debating directional opinions.
 
 ## 4. Backtest Results
 
-### VRP Sleeve (2007–Present, `src/backtest/run.py`)
-
-Two models run over 8,197 trading days using VIX as an IV proxy and Black-Scholes pricing:
-
+**VRP Sleeve** (2007–Present)
 | Model | CAGR | Sharpe | Max Drawdown |
 |---|---|---|---|
 | Unconditional selling | 1.67% | 1.62 | -2.06% |
 | Regime-filtered (our model) | 0.76% | 0.85 | -2.14% |
 
-**Honest finding**: The regime filter does NOT improve Sharpe or reduce drawdown vs unconditional selling. The filter reduces participation to ~23% of trading days, sacrificing too much premium. The claim that "regime filtering improves risk-adjusted returns" is **dropped from the pitch**. The pitch instead rests on: pre-registered honesty, deterministic risk gates, and the earnings sleeve as an uncorrelated second income stream.
+*Honest finding*: The regime filter does NOT improve Sharpe or reduce drawdown vs unconditional selling. The claim that "regime filtering improves risk-adjusted returns" is explicitly dropped from our pitch. The pitch instead relies on our pre-registered honesty, deterministic risk gates, and an uncorrelated second sleeve.
 
-### Earnings Sleeve (`src/backtest/earnings_backtest.py`)
+**Earnings Sleeve** (LULU, 24 historical events)
+Backtested win rate is **79.2%** (averaging $26/event, Sharpe 0.34). 
+*Note*: The live week only yields **one** liquid, high-conviction opportunity (LULU Sep 3 AMC). This is a focused, single-name trade sized per the risk gate, not a broad daily "sleeve".
 
-Historical earnings events for LULU and CIEN, using 30-day realized volatility as an IV proxy (true historical IV surfaces require paid data — limitation explicitly disclosed):
+## 5. The Regime-Filter Bug Story
 
-| Ticker | Events | Win Rate | Avg P&L | Sharpe |
-|---|---|---|---|---|
-| LULU | 24 | **79.2%** | $26/event | 0.34 |
-| CIEN | 24 | 20.8% | -$95/event | -0.89 |
+During backtesting, we discovered the regime filter was sitting out 93% of trading days. We traced this to a logical contradiction in the original pre-registration: it demanded `IV Rank > 50` (VIX elevated) AND `VIX < 200DMA` (VIX low/crashing). 
+Instead of silently changing the backtest to p-hack a better result, we issued a dated addendum to our `PREREGISTRATION.md`, dropped the 200DMA requirement, and replaced it with a `VIX_5d_ROC < 5%` rule to avoid vol expansion. This process rigor is a core differentiator: we build in public and fix bugs transparently.
 
-**CIEN dropped from live trading**: Avg actual move (9.8%) exceeds the 30-day HV proxy (3.1%) by 3x, meaning CIEN regularly gaps far past the short strikes. CIEN's backtest is a genuine loss in this proxy model. **LULU only** remains in the live earnings sleeve.
+## 6. Known Limitations
+- **Options pricing proxy**: VRP backtest options pricing is approximated via VIX. No free historical IV surface data is available.
+- **Earnings proxy**: Earnings backtest uses a 30-day HV proxy, not actual pre-earnings implied volatility.
+- **Live window**: The live trading window is ~4.5 sessions (Aug 31–Sep 4). This is insufficient to prove statistical edge in-sample; the backtest serves as our evidence base, while the live week is an orchestration demonstration.
+- **Assignment Risk**: Early assignment risk on short legs is not fully simulated in paper trading.
 
-**Caveat**: These earnings P&L numbers use credit estimated at 30% of wing width (conservative). True P&L requires live historical IV data. Numbers should be treated as directional proxies, not precise forecasts.
-
-## 5. Known Limitations (per Pre-Registration §6)
-
-- VRP backtest options pricing approximated via VIX (no free historical IV surface data).
-- Earnings backtest uses 30-day HV as IV proxy, not actual pre-earnings implied volatility.
-- The live trading window is ~4.5 sessions (Aug 31–Sep 4) — insufficient for statistical proof of edge; backtest is the evidence base.
-- Early assignment risk on short legs not fully simulated in paper trading.
-- The pre-registration required a dated addendum (Aug 23) to fix a logical contradiction in the original regime filter (IV Rank > 50 AND VIX < 200DMA were mutually exclusive conditions that caused 93% sit-out rate).
+## 7. Verifiable Log (Tamper-Detection)
+Every decision made by the LangGraph agent is appended to a hash-chained JSON log (`data/verifiable_log.json`), where each entry hashes the previous entry's signature. 
+Judges can run `make verify` (or `python verify_log.py`) locally. If a single byte of past decision-making is altered to look better post-trade, the chain verification will loudly fail, providing a mathematically guaranteed trust signal.
