@@ -76,7 +76,10 @@ def backtest_earnings_crush(ticker: str) -> pd.DataFrame:
         max_loss = (wing_width - credit_received) * 100
 
         stayed_inside = actual_move < implied_move_proxy
-        pnl = max_profit if stayed_inside else -max_loss
+        gross_pnl = max_profit if stayed_inside else -max_loss
+        
+        # Transaction costs: 4 legs * $0.06/leg * 2 (open/close) = $0.48/share = $48 per contract
+        net_pnl = gross_pnl - 48.0
 
         results.append({
             "date": event_date,
@@ -87,7 +90,8 @@ def backtest_earnings_crush(ticker: str) -> pd.DataFrame:
             "implied_move_proxy": implied_move_proxy,
             "implied_move_pct": implied_move_proxy / price_before,
             "stayed_inside": stayed_inside,
-            "pnl": pnl,
+            "gross_pnl": gross_pnl,
+            "net_pnl": net_pnl,
         })
 
     return pd.DataFrame(results)
@@ -103,16 +107,20 @@ if __name__ == "__main__":
         wins = df["stayed_inside"].sum()
         total = len(df)
         win_rate = wins / total
-        total_pnl = df["pnl"].sum()
-        avg_pnl = df["pnl"].mean()
-        sharpe = df["pnl"].mean() / df["pnl"].std() * np.sqrt(4) if df["pnl"].std() > 0 else 0
+        gross_pnl = df["gross_pnl"].sum()
+        net_pnl = df["net_pnl"].sum()
+        avg_net_pnl = df["net_pnl"].mean()
+        
+        # Annualized Sharpe for 4 earnings events per year
+        gross_sharpe = df["gross_pnl"].mean() / df["gross_pnl"].std() * np.sqrt(4) if df["gross_pnl"].std() > 0 else 0
+        net_sharpe = df["net_pnl"].mean() / df["net_pnl"].std() * np.sqrt(4) if df["net_pnl"].std() > 0 else 0
 
         print(f"\n{'='*50}")
         print(f"{ticker} Earnings IV-Crush Backtest ({total} events)")
         print(f"  Win rate:  {win_rate:.1%}  ({wins}/{total} events inside short strikes)")
-        print(f"  Total P&L: ${total_pnl:,.0f}")
-        print(f"  Avg P&L:   ${avg_pnl:,.0f} per event")
-        print(f"  Sharpe:    {sharpe:.2f}")
+        print(f"  Gross P&L: ${gross_pnl:,.0f} | Net P&L: ${net_pnl:,.0f}")
+        print(f"  Avg Net:   ${avg_net_pnl:,.0f} per event")
+        print(f"  Gross SR:  {gross_sharpe:.2f} | Net SR: {net_sharpe:.2f}")
         print(f"  Avg actual move:   {df['actual_move_pct'].mean():.1%}")
         print(f"  Avg implied proxy: {df['implied_move_proxy'].mean() / df['price_before'].mean():.1%}")
         print()
