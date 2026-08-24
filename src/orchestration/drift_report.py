@@ -59,12 +59,23 @@ def generate_drift_report():
             print(f"  - {d}")
             
     print("\n=== LLM NATURAL LANGUAGE SUMMARY ===")
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("(LLM API key not found in environment. Skipping natural language generation.)")
         print("Summary: The agent strictly adhered to the 3% circuit breaker and the VIX regime gate across all evaluated blocks.")
     else:
-        print("(LLM integration would run here to summarize the above deterministic findings.)")
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            prompt = f"Summarize the following quantitative drift report for an algorithmic trading bot. Ensure you mention the number of logs evaluated and whether any deviations were found. If deviations exist, list them briefly. Be professional and concise.\n\nTotal logs: {total_entries}\nDeviations found: {len(deviations)}\nDetails:\n" + "\n".join(deviations)
+            
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
+            print(response.text)
+        except Exception as e:
+            print(f"Error calling Gemini: {e}")
 
 if __name__ == "__main__":
     generate_drift_report()
