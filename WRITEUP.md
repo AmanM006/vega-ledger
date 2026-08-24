@@ -58,3 +58,10 @@ The agent will size and execute the LULU trade purely as a live orchestration de
 
 ## 6. Verifiable Log (Tamper-Detection)
 Every agent decision is appended to a hash-chained JSON log (`data/verifiable_log.json`). Judges can run `make verify` (or `python verify_log.py`) locally. If a single byte of past decision-making is altered post-trade, the cryptographic chain loudly fails. Trust is proven mathematically, not promised.
+
+## 7. Future Work: Execution Algorithms (Unvalidated Projection)
+We built a Time-Weighted Average Price (TWAP) execution node (src/orchestration/twap_executor.py) that systematically walks limit orders toward the aggressive side of the spread over a 15-minute window rather than firing an immediate market order.
+
+If this algorithm were to successfully recapture just 1/3 of the bid-ask spread (.02 per leg), our projected Net Sharpe would swing from -0.05 to +0.17. However, **this is an unvalidated hypothesis.** Fill behavior is highly dependent on real-time order book liquidity, which cannot be modeled accurately without live empirical data.
+
+Because we could not validate this execution improvement against live market hours over multiple sessions prior to the hackathon deadline, we refuse to report this projection as a finding. The official, mathematically validated stance of this project remains that the systematic VRP strategy yields negative expectancy (DSR=0.00%) due to spread friction. The TWAP node is strictly experimental future work.
