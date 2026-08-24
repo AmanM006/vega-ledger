@@ -2,3 +2,4 @@ venv/
 data/market_data.csv
 .env
 *.env
+.anchor_key
