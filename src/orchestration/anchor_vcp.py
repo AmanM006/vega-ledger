@@ -6,8 +6,8 @@ from eth_account import Account
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data')
 LOG_PATH = os.path.join(DATA_DIR, "verifiable_log.json")
-# Using Base Sepolia public RPC
-RPC_URL = "https://sepolia.base.org"
+# Using Ethereum Sepolia public RPC since the test funds were sent there
+RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com"
 
 def get_latest_hash():
     if not os.path.exists(LOG_PATH):
@@ -21,7 +21,7 @@ def get_latest_hash():
 def anchor_hash(root_hash: str):
     print(f"--- VCP Anchor Agent ---")
     print(f"Attempting to anchor hash: {root_hash}")
-    print(f"Network: Base Sepolia ({RPC_URL})")
+    print(f"Network: Ethereum Sepolia ({RPC_URL})")
 
     # Connect to Web3
     w3 = Web3(Web3.HTTPProvider(RPC_URL))
@@ -65,7 +65,7 @@ def anchor_hash(root_hash: str):
         'gas': 2000000,
         'gasPrice': w3.eth.gas_price,
         'data': memo_bytes,
-        'chainId': 84532 # Base Sepolia Chain ID
+        'chainId': 11155111 # Ethereum Sepolia Chain ID
     }
     
     # Estimate gas to be precise
@@ -78,15 +78,14 @@ def anchor_hash(root_hash: str):
     # Sign and send
     try:
         signed_tx = w3.eth.account.sign_transaction(tx, private_key=pk)
-        tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction) # Changed raw_transaction to rawTransaction due to web3py versions, wait, raw_transaction is v6, rawTransaction is v5
         
         # We will use raw_transaction if available, else rawTransaction
         raw_tx = getattr(signed_tx, 'raw_transaction', None) or getattr(signed_tx, 'rawTransaction')
         tx_hash = w3.eth.send_raw_transaction(raw_tx)
         
-        print(f"\n[SUCCESS] Anchored to Base Sepolia!")
+        print(f"\n[SUCCESS] Anchored to Ethereum Sepolia!")
         print(f"Transaction Hash: {tx_hash.hex()}")
-        print(f"View on block explorer: https://sepolia.basescan.org/tx/{tx_hash.hex()}")
+        print(f"View on block explorer: https://sepolia.etherscan.io/tx/{tx_hash.hex()}")
     except Exception as e:
         print(f"\n[ERROR] Failed to send transaction: {e}")
 
