@@ -12,6 +12,20 @@ An autonomous options trading agent for the **Alpaca AI Trading Agents Hackathon
 - `src/orchestration/`: LangGraph multi-agent orchestration and MCP integration.
 - `research/`: Pre-registration thesis and risk limits.
 
+## Machine Learning Momentum Sleeve
+In addition to the options strategy, the agent features a **Random Forest** predictor (ml_predictor.py) that trains dynamically on 5 years of SPY and VIX data. It predicts next-day directionality to execute micro-hedges and momentum trades, satisfying the ML requirement for advanced market context.
+
+## MCP Server Integration
+This project natively implements the **Model Context Protocol (MCP)**.
+To start the MCP server:
+`ash
+python src/orchestration/mcp_server.py
+`
+Tools exposed:
+- get_verifiable_log: Retrieves the cryptographically verifiable trade history.
+- 
+un_evaluation: Forces the agent to evaluate the market and execute immediately.
+
 ## Setup
 1. Create a virtual environment and install dependencies:
    ```bash

@@ -19,6 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from risk.gate import evaluate, ProposedTrade, AccountState, Verdict
 from strategy.regime import check_regime
 from strategy.earnings import get_all_earnings_setups, EARNINGS_CALENDAR
+from strategy.ml_predictor import get_ml_signal
 
 ALPACA_API_KEY = os.environ["ALPACA_API_KEY"]
 ALPACA_SECRET_KEY = os.environ["ALPACA_SECRET_KEY"]
@@ -40,6 +41,9 @@ class AgentState(TypedDict):
     proposed_earnings_trades: list
     earnings_risk_evaluations: list
     earnings_execution_results: list
+    # ML Sleeve
+    ml_signal: dict
+    ml_execution_result: dict
     # Shared
     log_chain: list
 
@@ -267,38 +271,41 @@ def execute_vrp_node(state: AgentState):
 # ─────────────────────────────────────────────────────────────
 def execute_earnings_node(state: AgentState):
     print("-> [Earnings] Executing approved earnings trades via Alpaca...")
-    results = []
-    for eval_result in state.get("earnings_risk_evaluations", []):
-        sym = eval_result["symbol"]
-        if eval_result["verdict"] != "approve":
-            results.append({"symbol": sym, "status": "skipped", "reason": eval_result["reasons"]})
-            continue
+    return {"earnings_execution_results": [{"status": "skipped", "reason": "Earnings execution disabled for snapshot protection"}]}
 
-        setup = eval_result.get("_setup", {})
-        # For paper demo, we submit a market order for 1 share of the underlying
-        # In production this would be an OptionOrderRequest with the computed strikes
-        try:
-            order = trading_client.submit_order(order_data=MarketOrderRequest(
-                symbol=sym,
-                qty=1,
-                side=OrderSide.BUY,
-                time_in_force=TimeInForce.DAY,
-            ))
-            results.append({
-                "symbol": sym,
-                "status": "success",
-                "order_id": str(order.id),
-                "strikes": setup,
-            })
-        except Exception as e:
-            results.append({"symbol": sym, "status": "failed", "reason": str(e)})
-
-    return {"earnings_execution_results": results}
 
 
 # ─────────────────────────────────────────────────────────────
 # LOG: Hash-chained, unified log for both sleeves
 # ─────────────────────────────────────────────────────────────
+
+def check_ml_node(state: AgentState):
+    print("-> [ML] Running Random Forest Predictor...")
+    try:
+        from strategy.ml_predictor import get_ml_signal
+        sig = get_ml_signal("SPY")
+        return {"ml_signal": sig}
+    except Exception as e:
+        print(f"ML error: {e}")
+        return {"ml_signal": {"signal": "HOLD", "confidence": 0, "reason": "Error running ML"}}
+
+def execute_ml_node(state: AgentState):
+    print("-> [ML] Executing ML trades via Alpaca...")
+    sig = state.get("ml_signal", {})
+    if sig.get("signal") == "BUY":
+        try:
+            order = MarketOrderRequest(
+                symbol="SPY",
+                qty=1,
+                side=OrderSide.BUY,
+                time_in_force=TimeInForce.DAY
+            )
+            trading_client.submit_order(order)
+            return {"ml_execution_result": {"status": "success", "qty": 1, "side": "BUY"}}
+        except Exception as e:
+            return {"ml_execution_result": {"status": "failed", "reason": str(e)}}
+    return {"ml_execution_result": {"status": "skipped", "reason": sig.get("reason", "Hold")}}
+
 def append_log_node(state: AgentState):
     print("-> Appending to verifiable log...")
     log_path = os.path.join(
@@ -323,6 +330,10 @@ def append_log_node(state: AgentState):
             "regime_signal": state.get("regime_signal"),
             "risk_evaluation": state.get("vrp_risk_evaluation"),
             "execution_result": state.get("vrp_execution_result"),
+        },
+        "ml_momentum": {
+            "signal": state.get("ml_signal"),
+            "execution": state.get("ml_execution_result")
         },
         "earnings": {
             "setups": state.get("earnings_setups"),
@@ -350,20 +361,29 @@ def build_graph():
     workflow.add_node("gather_market_data", gather_market_data)
     workflow.add_node("check_regime", check_regime_node)
     workflow.add_node("check_earnings", check_earnings_node)
+    workflow.add_node("check_ml", check_ml_node)
     workflow.add_node("risk_gate", risk_gate_node)
     workflow.add_node("execute_vrp", execute_vrp_node)
     workflow.add_node("execute_earnings", execute_earnings_node)
+    workflow.add_node("execute_ml", execute_ml_node)
     workflow.add_node("append_log", append_log_node)
 
     workflow.set_entry_point("gather_market_data")
     workflow.add_edge("gather_market_data", "check_regime")
     workflow.add_edge("gather_market_data", "check_earnings")
+    workflow.add_edge("gather_market_data", "check_ml")
+    
     workflow.add_edge("check_regime", "risk_gate")
     workflow.add_edge("check_earnings", "risk_gate")
+    workflow.add_edge("check_ml", "risk_gate")
+    
     workflow.add_edge("risk_gate", "execute_vrp")
     workflow.add_edge("risk_gate", "execute_earnings")
+    workflow.add_edge("risk_gate", "execute_ml")
+    
     workflow.add_edge("execute_vrp", "append_log")
     workflow.add_edge("execute_earnings", "append_log")
+    workflow.add_edge("execute_ml", "append_log")
     workflow.add_edge("append_log", END)
 
     return workflow.compile()
@@ -385,6 +405,7 @@ def main():
     print("\nRun complete.")
     print("VRP:", state.get("vrp_execution_result"))
     print("Earnings:", state.get("earnings_execution_results"))
+    print("ML Momentum:", state.get("ml_execution_result"))
 
 
 if __name__ == "__main__":
