@@ -1,4 +1,4 @@
-﻿# VRP-Agent: Autonomous Options Trading
+# VRP-Agent: Autonomous Options Trading
 
 An autonomous options trading agent for the **Alpaca AI Trading Agents Hackathon**.
 
@@ -17,12 +17,21 @@ An autonomous options trading agent for the **Alpaca AI Trading Agents Hackathon
    ```bash
    python -m venv venv
    .\venv\Scripts\activate
-   pip install yfinance pandas numpy matplotlib streamlit langgraph alpaca-py mcp pydantic langchain-openai
+   pip install -r requirements.txt
    ```
-2. Set up your Alpaca paper trading API keys:
+2. Create a `.env` file with your credentials:
+   ```env
+   ALPACA_API_KEY=your_paper_key
+   ALPACA_SECRET_KEY=your_paper_secret
+   GEMINI_API_KEY=your_gemini_key
+   ```
+3. Run the background agent via the CLI:
    ```bash
-   set ALPACA_API_KEY=your_key
-   set ALPACA_SECRET_KEY=your_secret
+   python cli.py daemon
+   ```
+4. Launch the visual dashboard:
+   ```bash
+   python cli.py dashboard
    ```
 
 ## Running the Project
