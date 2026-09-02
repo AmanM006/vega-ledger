@@ -62,10 +62,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function Dashboard() {
+  const [mounted, setMounted] = useState(false);
   const [accountData, setAccountData] = useState<{ account: Record<string, string>; positions: Position[]; orders: Order[] } | null>(null);
   const [logData, setLogData] = useState<{ entries: LogEntry[]; total: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const fetchAll = async () => {
     try {
@@ -84,10 +85,23 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    setMounted(true);
+    setLastRefresh(new Date());
     fetchAll();
     const interval = setInterval(fetchAll, 30000); // refresh every 30s
     return () => clearInterval(interval);
   }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-gray-400">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm font-mono">Initializing Vega Ledger Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const acc = accountData?.account;
   const positions = accountData?.positions ?? [];
@@ -120,7 +134,7 @@ export default function Dashboard() {
             <button onClick={fetchAll} className="text-xs text-gray-500 hover:text-gray-300 transition px-3 py-1.5 rounded-lg border border-gray-800 hover:border-gray-600">
               Refresh
             </button>
-            <span className="text-xs text-gray-600">Updated {lastRefresh.toLocaleTimeString()}</span>
+            <span className="text-xs text-gray-600">Updated {lastRefresh ? lastRefresh.toLocaleTimeString() : "..."}</span>
           </div>
         </div>
       </div>
