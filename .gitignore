@@ -3,3 +3,11 @@ data/market_data.csv
 .env
 *.env
 .anchor_key
+__pycache__/
+*.pyc
+replace.txt
+patch.py
+patch2.py
+dashboard/.env.local
+dashboard/.next/
+dashboard/node_modules/

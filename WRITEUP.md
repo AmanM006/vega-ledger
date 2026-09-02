@@ -1,5 +1,8 @@
 # VRP-Agent: Autonomous Options Trading
 
+**Alpaca Paper Account ID**: PA3D4EOEK0PA
+**Competition Account Created**: September 2, 2026 (within hackathon window)
+
 **Hackathon**: Alpaca AI Trading Agents Hackathon
 **Track**: Options Trading
 **Author**: Aman
