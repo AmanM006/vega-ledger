@@ -1,6 +1,6 @@
 # VRP-Agent: Institutional-Grade Autonomous Options Trading
 
-> **Alpaca AI Trading Agents Hackathon** | Account: `PA3D4EOEK0PA` | Strategy: Volatility Risk Premium + ML Momentum
+> **Alpaca AI Trading Agents Hackathon** | Account: `PA3LL11TFH7L` | Strategy: Volatility Risk Premium + Quant Refusal
 
 An **autonomous, multi-strategy AI trading agent** built on LangGraph. It combines a **Deflated Sharpe Ratio (DSR)** validated options strategy, a **Scikit-Learn Random Forest** ML momentum sleeve, a deterministic risk gate, and an on-chain cryptographic audit trail anchored to the **Ethereum blockchain**.
 

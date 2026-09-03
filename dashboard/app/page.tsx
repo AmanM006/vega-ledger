@@ -161,7 +161,7 @@ export default function TerminalDashboard() {
           <div className="flex items-center gap-2 text-[11px] text-zinc-400">
             <span className="text-zinc-500 uppercase">Account:</span>
             <span className="text-white font-bold bg-zinc-900/90 px-2 py-0.5 rounded border border-zinc-800">
-              PA3D4EOEK0PA
+              PA3LL11TFH7L
             </span>
             <span className="text-emerald-400 text-[10px] border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 rounded">
               COMPETITION VERIFIED
@@ -556,7 +556,7 @@ export default function TerminalDashboard() {
         <div className="flex items-center gap-3">
           <span>ETH SEPOLIA ANCHOR LIVE</span>
           <span>·</span>
-          <span>ALPACA PA3D4EOEK0PA</span>
+          <span>ALPACA PA3LL11TFH7L</span>
         </div>
       </footer>
     </div>

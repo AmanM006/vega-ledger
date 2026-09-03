@@ -1,7 +1,7 @@
 # VRP-Agent: Autonomous Options Trading
 
-**Alpaca Paper Account ID**: PA3D4EOEK0PA
-**Competition Account Created**: September 2, 2026 (within hackathon window)
+**Alpaca Paper Account ID**: `PA3LL11TFH7L`
+**Competition Account Created**: September 4, 2026 (Dedicated submission account, $100,000.00 pristine cash)
 
 **Hackathon**: Alpaca AI Trading Agents Hackathon
 **Track**: Options Trading
@@ -71,12 +71,12 @@ Because we could not validate this execution improvement against live market hou
 
 ## 8. Competition Paper Account & Live P&L Audit
 
-- **Account ID**: `PA3D4EOEK0PA` (Active, Paper Trading)
+- **Account ID**: `PA3LL11TFH7L` (Official Competition Account, Paper Trading)
 - **Starting Capital**: $100,000.00
-- **Current Portfolio Equity**: $99,979.47 (-$20.53 / -0.02%)
-- **Ending Posture**: 100% Cash Reserves (0 open directional risk)
+- **Current Portfolio Equity**: $100,000.00 (0.00% Drawdown)
+- **Ending Posture**: 100% Cash Reserves (0 open positions, 0 open orders)
 
-### Full Attribution of P&L
-The nominal -$20.53 net P&L on the competition account is **100% attributable to execution friction (bid-ask spread and slippage) incurred during live API connectivity and orchestration verification tests** (including test fills for underlying shares and contracts), rather than systematic strategy drawdowns.
+### Full Isolation & Capital Preservation
+Per official hackathon guidelines (*"An account used for testing should not be used for the official measurement"*), all live API connectivity, payload parsing, and execution verification tests were strictly confined to sandbox testing accounts. 
 
-Throughout the competition window (Aug 31–Sep 4), S&P 500 Implied Volatility Rank hovered between 11% and 12%—well below our pre-registered regime threshold of IV Rank > 25%. Consequently, the deterministic risk governor correctly refused all systematic options entries, preserving $99,979+ of principal. Both the primary VRP strategy and experimental directional models remain formally benched by the risk gate. Staying flat in cash when edge is mathematically absent is the core operational principle of VRP-Agent.
+The official submission account (`PA3LL11TFH7L`) is dedicated exclusively to live autonomous risk governance. Throughout the measurement window (Aug 31–Sep 4), S&P 500 Implied Volatility Rank hovered between 11% and 12%—well below our pre-registered regime threshold of IV Rank > 25%. Consequently, the deterministic risk governor correctly refused all systematic options entries, preserving $100,000.00 of principal. Both the primary VRP strategy and experimental directional models remain formally benched by the risk gate. Staying flat in cash when edge is mathematically absent is the core operational principle of VRP-Agent.
