@@ -226,11 +226,11 @@ export default function TerminalDashboard() {
             <p className="font-bold text-zinc-300 text-sm">{(latestEntry?.market_data?.iv_rank ?? 11.8).toFixed(1)}%</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-zinc-500">ML Momentum</p>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-400 text-sm">
-              <span>{latestEntry?.ml_momentum?.signal?.signal ?? "BUY"}</span>
+            <p className="text-[10px] uppercase text-zinc-500">ML Directional</p>
+            <div className="flex items-center gap-1.5 font-bold text-amber-400 text-sm">
+              <span>BENCHED</span>
               <span className="text-[10px] font-normal text-zinc-500">
-                ({(((latestEntry?.ml_momentum?.signal?.confidence ?? 0.491) * 100)).toFixed(1)}%)
+                (DSR unvalidated)
               </span>
             </div>
           </div>
@@ -338,39 +338,33 @@ export default function TerminalDashboard() {
         {/* ========================================================================= */}
         <div className="lg:col-span-4 space-y-4 flex flex-col">
           {/* ML Momentum Random Forest Telemetry */}
-          <div className="rounded-xl border border-emerald-950/60 bg-zinc-950 p-4 relative overflow-hidden">
+          <div className="rounded-xl border border-amber-950/60 bg-zinc-950 p-4 relative overflow-hidden">
             <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-900">
               <div className="flex items-center gap-2">
-                <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="font-bold text-white uppercase text-[11px]">Machine Learning Momentum Engine</span>
+                <Cpu className="w-3.5 h-3.5 text-amber-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Directional ML Engine (Experimental)</span>
               </div>
-              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                ACTIVE ALPHA
+              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                BENCHED BY RISK GATE
               </span>
             </div>
 
             <div className="space-y-2.5 text-xs">
               <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
                 <span className="text-zinc-500">Model Architecture</span>
-                <span className="text-white font-bold">Random Forest (Scikit-Learn)</span>
+                <span className="text-white font-bold">Random Forest (5yr Rolling Features)</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
-                <span className="text-zinc-500">Training Window</span>
-                <span className="text-zinc-300">5-Year SPY + VIX Rolling (Dynamic Fit)</span>
+                <span className="text-zinc-500">Raw Model Probability</span>
+                <span className="text-zinc-300">p = {(latestEntry?.ml_momentum?.signal?.confidence ?? 0.491).toFixed(2)} (Neutral / Noise Regime)</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
-                <span className="text-zinc-500">Input Feature Matrix</span>
-                <span className="text-zinc-300">5d/20d Ret, SMA5, SMA20, VIX Momentum</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
-                <span className="text-zinc-500">Predicted Direction</span>
-                <span className="text-emerald-400 font-bold">
-                  {latestEntry?.ml_momentum?.signal?.signal ?? "BUY"} ({(((latestEntry?.ml_momentum?.signal?.confidence ?? 0.491) * 100)).toFixed(1)}% conf)
-                </span>
+                <span className="text-zinc-500">Walk-Forward DSR Validation</span>
+                <span className="text-rose-400 font-bold">UNVALIDATED (Fails DSR &gt; 0.95 Hurdle)</span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="text-zinc-500">Execution Action</span>
-                <span className="text-emerald-400 font-bold">1 Share SPY Market Order Executed</span>
+                <span className="text-zinc-500">Governor Directive</span>
+                <span className="text-amber-400 font-bold">REFUSED TRADE · NO LIVE EXPOSURE</span>
               </div>
             </div>
           </div>
@@ -526,8 +520,8 @@ export default function TerminalDashboard() {
                           VRP:{tradeable ? "GO" : "STAND DOWN"}
                         </span>
                         {ml && (
-                          <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-blue-500/20 text-blue-400">
-                            ML:{ml.signal?.signal ?? "HOLD"}
+                          <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            ML:BENCHED
                           </span>
                         )}
                       </div>

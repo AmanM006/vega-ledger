@@ -55,12 +55,12 @@ def get_ml_signal(ticker="SPY"):
     today_features = df[features].iloc[-1:]
     prob = rf.predict_proba(today_features)[0][1]
     
-    if prob >= 0.45:
-        return {"signal": "BUY", "confidence": round(prob, 3), "reason": f"RF bullish (p={prob:.2f})"}
-    elif prob < 0.45:
-        return {"signal": "SELL", "confidence": round(1-prob, 3), "reason": f"RF bearish (p={1-prob:.2f})"}
+    if prob >= 0.58:
+        return {"signal": "BUY", "confidence": round(prob, 3), "reason": f"RF bullish edge (p={prob:.2f})"}
+    elif prob <= 0.42:
+        return {"signal": "SELL", "confidence": round(1-prob, 3), "reason": f"RF bearish edge (p={1-prob:.2f})"}
     else:
-        return {"signal": "HOLD", "confidence": round(prob, 3), "reason": f"RF neutral (p={prob:.2f})"}
+        return {"signal": "HOLD", "confidence": round(prob, 3), "reason": f"RF neutral / noise regime (p={prob:.2f})"}
 
 if __name__ == "__main__":
     print(get_ml_signal())

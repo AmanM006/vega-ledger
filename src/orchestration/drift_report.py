@@ -45,11 +45,17 @@ def generate_drift_report():
             if vrp_exec not in ['skipped', 'halted', '']:
                 deviations.append(f"[{timestamp}] DRIFT: Regime was NOT tradeable, but VRP execution status was '{vrp_exec}'. Expected 'skipped'.")
                 
-        # 3. Position Sizing / Max Loss Limit (2% of equity per trade)
-        # Currently the log doesn't store the exact executed max_loss dollars if executed, 
-        # but if it did, we would check it here. Since we only have skips/halts in the current log,
-        # we will add the placeholder for when real trades are logged.
-        
+        # 3. Pre-Registration Scope Check
+        # PREREGISTRATION.md explicitly covers only VRP Options and Earnings IV Crush.
+        # Any live execution from an unauthorized / unvalidated directional sleeve
+        # represents strategy drift away from the pre-registered quantitative thesis.
+        ml_data = entry.get('ml_momentum') or {}
+        ml_exec = (ml_data.get('execution') or {}).get('status', '')
+        if ml_exec in ['success', 'executed', 'filled']:
+            deviations.append(
+                f"[{timestamp}] DRIFT: Un-preregistered sleeve 'ml_momentum' executed live trade without prior PREREGISTRATION.md addendum or DSR validation."
+            )
+            
     print("=== DETERMINISTIC RULE CHECK ===")
     if not deviations:
         print("[PASS] 0 deviations found. The agent executed flawlessly within pre-registered constraints.")

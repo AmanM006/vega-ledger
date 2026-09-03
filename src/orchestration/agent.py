@@ -290,21 +290,34 @@ def check_ml_node(state: AgentState):
         return {"ml_signal": {"signal": "HOLD", "confidence": 0, "reason": "Error running ML"}}
 
 def execute_ml_node(state: AgentState):
-    print("-> [ML] Executing ML trades via Alpaca...")
+    print("-> [ML] Evaluating ML proposal against quantitative risk gate...")
     sig = state.get("ml_signal", {})
-    if sig.get("signal") == "BUY":
-        try:
-            order = MarketOrderRequest(
-                symbol="SPY",
-                qty=1,
-                side=OrderSide.BUY,
-                time_in_force=TimeInForce.DAY
-            )
-            trading_client.submit_order(order)
-            return {"ml_execution_result": {"status": "success", "qty": 1, "side": "BUY"}}
-        except Exception as e:
-            return {"ml_execution_result": {"status": "failed", "reason": str(e)}}
-    return {"ml_execution_result": {"status": "skipped", "reason": sig.get("reason", "Hold")}}
+    signal_type = sig.get("signal", "HOLD")
+    confidence = sig.get("confidence", 0.0)
+    
+    # Institutional Risk Gate:
+    # The directional ML sleeve lacks walk-forward DSR validation (>95% threshold).
+    # Refuse unhedged directional live orders to maintain zero-alpha-hallucination discipline.
+    if signal_type in ["BUY", "SELL"]:
+        return {
+            "ml_execution_result": {
+                "status": "benched",
+                "signal": signal_type,
+                "confidence": confidence,
+                "reason": [
+                    "Directional ML model lacks Deflated Sharpe Ratio (DSR > 0.95) walk-forward proof",
+                    "Unhedged directional trade refused by quantitative risk governor"
+                ]
+            }
+        }
+    return {
+        "ml_execution_result": {
+            "status": "skipped",
+            "signal": "HOLD",
+            "confidence": confidence,
+            "reason": [sig.get("reason", "Model output in noise/neutral regime")]
+        }
+    }
 
 def append_log_node(state: AgentState):
     print("-> Appending to verifiable log...")
