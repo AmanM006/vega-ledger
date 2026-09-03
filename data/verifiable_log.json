@@ -26,5 +26,525 @@
       }
     },
     "hash": "3d35b2bb245aa4935cd4a61e746021b94b618397824e2fd0286f16701d7830cd"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-02T14:24:36.088183+00:00",
+      "market_data": {
+        "spy_price": 765.48,
+        "vix_now": 15.619999885559082,
+        "vix_200dma": 18.372600040435792,
+        "vix_5d_ago": 15.449999809265137,
+        "iv_rank": 12.229805145013566,
+        "iv_percentile": 17.391304347826086,
+        "account_equity": 100000.0,
+        "daily_pnl": 0.0,
+        "today": "2026-09-02"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=12) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "earnings": {
+        "setups": [
+          {
+            "ticker": "LULU",
+            "report_date": "2026-09-03",
+            "report_time": "post",
+            "straddle": 11.524999999999999,
+            "expected_move_pct": 0.09444398918298778,
+            "tradeable": true,
+            "reject_reason": null
+          },
+          {
+            "ticker": "CIEN",
+            "report_date": "2026-09-03",
+            "report_time": "pre",
+            "straddle": 41.7,
+            "expected_move_pct": 0.11729957805907174,
+            "tradeable": true,
+            "reject_reason": null
+          }
+        ],
+        "risk_evaluations": [
+          {
+            "symbol": "LULU",
+            "verdict": "approve",
+            "reasons": [
+              "all checks passed"
+            ],
+            "_setup": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 122.03,
+              "straddle": 11.524999999999999
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "verdict": "reject",
+            "reasons": [
+              "per-trade max loss 3.67% exceeds cap 2.00%"
+            ],
+            "_setup": {
+              "short_call": 397.5,
+              "long_call": 450.0,
+              "short_put": 315.0,
+              "long_put": 262.5,
+              "expiry": "2026-09-04",
+              "stock_price": 355.5,
+              "straddle": 41.7
+            }
+          }
+        ],
+        "execution_results": [
+          {
+            "symbol": "LULU",
+            "status": "success",
+            "order_id": "ff417877-e858-43d2-a09f-a1073d2054de",
+            "strikes": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 122.03,
+              "straddle": 11.524999999999999
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "status": "skipped",
+            "reason": [
+              "per-trade max loss 3.67% exceeds cap 2.00%"
+            ]
+          }
+        ]
+      }
+    },
+    "hash": "03a641dbaf2025abf77e3dd710703680bc874c700eb244d2d0cb8109ad570c34"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-02T15:12:19.426043+00:00",
+      "market_data": {
+        "spy_price": 765.68,
+        "vix_now": 15.529999732971191,
+        "vix_200dma": 18.372150039672853,
+        "vix_5d_ago": 15.449999809265137,
+        "iv_rank": 11.717858854565472,
+        "iv_percentile": 16.99604743083004,
+        "account_equity": 99973.42,
+        "daily_pnl": -26.580000000001746,
+        "today": "2026-09-02"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=12) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "ml_momentum": {
+        "signal": null,
+        "execution": null
+      },
+      "earnings": {
+        "setups": [
+          {
+            "ticker": "LULU",
+            "report_date": "2026-09-03",
+            "report_time": "post",
+            "straddle": 11.425,
+            "expected_move_pct": 0.09457781456953643,
+            "tradeable": true,
+            "reject_reason": null
+          },
+          {
+            "ticker": "CIEN",
+            "report_date": "2026-09-03",
+            "report_time": "pre",
+            "straddle": 39.099999999999994,
+            "expected_move_pct": 0.11145634388985488,
+            "tradeable": true,
+            "reject_reason": null
+          }
+        ],
+        "risk_evaluations": [
+          {
+            "symbol": "LULU",
+            "verdict": "approve",
+            "reasons": [
+              "all checks passed"
+            ],
+            "_setup": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 120.8,
+              "straddle": 11.425
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "verdict": "reject",
+            "reasons": [
+              "per-trade max loss 3.68% exceeds cap 2.00%"
+            ],
+            "_setup": {
+              "short_call": 390.0,
+              "long_call": 442.5,
+              "short_put": 312.5,
+              "long_put": 260.0,
+              "expiry": "2026-09-04",
+              "stock_price": 350.81,
+              "straddle": 39.099999999999994
+            }
+          }
+        ],
+        "execution_results": [
+          {
+            "symbol": "LULU",
+            "status": "success",
+            "order_id": "fbb159c7-3507-4a69-a8c1-c2ced479cdaa",
+            "strikes": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 120.8,
+              "straddle": 11.425
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "status": "skipped",
+            "reason": [
+              "per-trade max loss 3.68% exceeds cap 2.00%"
+            ]
+          }
+        ]
+      }
+    },
+    "hash": "1bb76bfb17d5d415d74960e839e60c235d4adfc6c6a6f1fcdfb51de11484b402"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-02T15:14:34.803506+00:00",
+      "market_data": {
+        "spy_price": 765.37,
+        "vix_now": 15.539999961853027,
+        "vix_200dma": 18.372200040817262,
+        "vix_5d_ago": 15.449999809265137,
+        "iv_rank": 11.77474298123057,
+        "iv_percentile": 16.99604743083004,
+        "account_equity": 99973.23,
+        "daily_pnl": -26.770000000004075,
+        "today": "2026-09-02"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=12) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "ml_momentum": {
+        "signal": {
+          "signal": "HOLD",
+          "confidence": 0.491,
+          "reason": "RF neutral (p=0.49)"
+        },
+        "execution": {
+          "status": "skipped",
+          "reason": "RF neutral (p=0.49)"
+        }
+      },
+      "earnings": {
+        "setups": [
+          {
+            "ticker": "LULU",
+            "report_date": "2026-09-03",
+            "report_time": "post",
+            "straddle": 11.475,
+            "expected_move_pct": 0.09501531837376832,
+            "tradeable": true,
+            "reject_reason": null
+          },
+          {
+            "ticker": "CIEN",
+            "report_date": "2026-09-03",
+            "report_time": "pre",
+            "straddle": 39.099999999999994,
+            "expected_move_pct": 0.11145157842229031,
+            "tradeable": true,
+            "reject_reason": null
+          }
+        ],
+        "risk_evaluations": [
+          {
+            "symbol": "LULU",
+            "verdict": "approve",
+            "reasons": [
+              "all checks passed"
+            ],
+            "_setup": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 120.77,
+              "straddle": 11.475
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "verdict": "reject",
+            "reasons": [
+              "per-trade max loss 3.68% exceeds cap 2.00%"
+            ],
+            "_setup": {
+              "short_call": 390.0,
+              "long_call": 442.5,
+              "short_put": 312.5,
+              "long_put": 260.0,
+              "expiry": "2026-09-04",
+              "stock_price": 350.825,
+              "straddle": 39.099999999999994
+            }
+          }
+        ],
+        "execution_results": [
+          {
+            "status": "skipped",
+            "reason": "Earnings execution disabled for snapshot protection"
+          }
+        ]
+      }
+    },
+    "hash": "ca6ccca5043eafae73f6989a7649e8e7b1d3706bd4b93b953382a1e81f73a656"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-02T15:15:04.259930+00:00",
+      "market_data": {
+        "spy_price": 765.55,
+        "vix_now": 15.539999961853027,
+        "vix_200dma": 18.372200040817262,
+        "vix_5d_ago": 15.449999809265137,
+        "iv_rank": 11.77474298123057,
+        "iv_percentile": 16.99604743083004,
+        "account_equity": 99973.23,
+        "daily_pnl": -26.770000000004075,
+        "today": "2026-09-02"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=12) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "ml_momentum": {
+        "signal": {
+          "signal": "BUY",
+          "confidence": 0.491,
+          "reason": "RF bullish (p=0.49)"
+        },
+        "execution": {
+          "status": "success",
+          "qty": 1,
+          "side": "BUY"
+        }
+      },
+      "earnings": {
+        "setups": [
+          {
+            "ticker": "LULU",
+            "report_date": "2026-09-03",
+            "report_time": "post",
+            "straddle": 11.475000000000001,
+            "expected_move_pct": 0.09496027805362464,
+            "tradeable": true,
+            "reject_reason": null
+          },
+          {
+            "ticker": "CIEN",
+            "report_date": "2026-09-03",
+            "report_time": "pre",
+            "straddle": 39.099999999999994,
+            "expected_move_pct": 0.11150723271274281,
+            "tradeable": true,
+            "reject_reason": null
+          }
+        ],
+        "risk_evaluations": [
+          {
+            "symbol": "LULU",
+            "verdict": "approve",
+            "reasons": [
+              "all checks passed"
+            ],
+            "_setup": {
+              "short_call": 132.5,
+              "long_call": 150.0,
+              "short_put": 110.0,
+              "long_put": 92.5,
+              "expiry": "2026-09-04",
+              "stock_price": 120.84,
+              "straddle": 11.475000000000001
+            }
+          },
+          {
+            "symbol": "CIEN",
+            "verdict": "reject",
+            "reasons": [
+              "per-trade max loss 3.68% exceeds cap 2.00%"
+            ],
+            "_setup": {
+              "short_call": 390.0,
+              "long_call": 442.5,
+              "short_put": 312.5,
+              "long_put": 260.0,
+              "expiry": "2026-09-04",
+              "stock_price": 350.6499,
+              "straddle": 39.099999999999994
+            }
+          }
+        ],
+        "execution_results": [
+          {
+            "status": "skipped",
+            "reason": "Earnings execution disabled for snapshot protection"
+          }
+        ]
+      }
+    },
+    "hash": "f2e73e32e118b1f8c7520108be851c5f256d7a2bbf6c5a6ee562db01b8666d3d"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-03T22:10:50.170844+00:00",
+      "market_data": {
+        "spy_price": 772.61,
+        "vix_now": 14.319999694824219,
+        "vix_200dma": 18.303200044631957,
+        "vix_5d_ago": 14.510000228881836,
+        "iv_rank": 4.835036846386548,
+        "iv_percentile": 2.3622047244094486,
+        "account_equity": 99979.4,
+        "daily_pnl": 7.179999999993015,
+        "today": "2026-09-04"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=5) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "ml_momentum": {
+        "signal": {
+          "signal": "SELL",
+          "confidence": 0.588,
+          "reason": "RF bearish edge (p=0.59)"
+        },
+        "execution": {
+          "status": "benched",
+          "signal": "SELL",
+          "confidence": 0.588,
+          "reason": [
+            "Directional ML model lacks Deflated Sharpe Ratio (DSR > 0.95) walk-forward proof",
+            "Unhedged directional trade refused by quantitative risk governor"
+          ]
+        }
+      },
+      "earnings": {
+        "setups": [],
+        "risk_evaluations": [],
+        "execution_results": [
+          {
+            "status": "skipped",
+            "reason": "Earnings execution disabled for snapshot protection"
+          }
+        ]
+      }
+    },
+    "hash": "ac4fccf6185e715dc3f6ab122643cf12aa0fd930385185c7c5ee788aae382b21"
   }
 ]
