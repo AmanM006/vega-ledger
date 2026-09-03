@@ -169,34 +169,6 @@ export default function TerminalDashboard() {
           </div>
         </div>
 
-        {/* Protocol Badges / Logos */}
-        <div className="hidden xl:flex items-center gap-3 text-[10px] text-zinc-400 border border-zinc-900 bg-zinc-950/60 px-3 py-1 rounded-md">
-          <div className="flex items-center gap-1.5">
-            <Activity className="w-3 h-3 text-amber-400" />
-            <span>ALPACA API</span>
-          </div>
-          <span className="text-zinc-800">·</span>
-          <div className="flex items-center gap-1.5">
-            <Lock className="w-3 h-3 text-blue-400" />
-            <span>ETH SEPOLIA</span>
-          </div>
-          <span className="text-zinc-800">·</span>
-          <div className="flex items-center gap-1.5">
-            <Layers className="w-3 h-3 text-purple-400" />
-            <span>LANGGRAPH</span>
-          </div>
-          <span className="text-zinc-800">·</span>
-          <div className="flex items-center gap-1.5">
-            <Cpu className="w-3 h-3 text-emerald-400" />
-            <span>SCIKIT-LEARN</span>
-          </div>
-          <span className="text-zinc-800">·</span>
-          <div className="flex items-center gap-1.5">
-            <Terminal className="w-3 h-3 text-pink-400" />
-            <span>FASTMCP</span>
-          </div>
-        </div>
-
         {/* Right Tools & Sync */}
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-zinc-500 hidden sm:inline">
