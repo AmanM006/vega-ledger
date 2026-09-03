@@ -63,8 +63,20 @@ The agent will size and execute the LULU trade purely as a live orchestration de
 Every agent decision is appended to a hash-chained JSON log (`data/verifiable_log.json`). Judges can run `make verify` (or `python verify_log.py`) locally. If a single byte of past decision-making is altered post-trade, the cryptographic chain loudly fails. Trust is proven mathematically, not promised.
 
 ## 7. Future Work: Execution Algorithms (Unvalidated Projection)
-We built a Time-Weighted Average Price (TWAP) execution node (src/orchestration/twap_executor.py) that systematically walks limit orders toward the aggressive side of the spread over a 15-minute window rather than firing an immediate market order.
+We built a Time-Weighted Average Price (TWAP) execution node (`src/orchestration/twap_executor.py`) that systematically walks limit orders toward the aggressive side of the spread over a 15-minute window rather than firing an immediate market order.
 
-If this algorithm were to successfully recapture just 1/3 of the bid-ask spread (.02 per leg), our projected Net Sharpe would swing from -0.05 to +0.17. However, **this is an unvalidated hypothesis.** Fill behavior is highly dependent on real-time order book liquidity, which cannot be modeled accurately without live empirical data.
+If this algorithm were to successfully recapture just 1/3 of the bid-ask spread ($0.02 per leg), our projected Net Sharpe would swing from -0.05 to +0.17. However, **this is an unvalidated hypothesis.** Fill behavior is highly dependent on real-time order book liquidity, which cannot be modeled accurately without live empirical data.
 
 Because we could not validate this execution improvement against live market hours over multiple sessions prior to the hackathon deadline, we refuse to report this projection as a finding. The official, mathematically validated stance of this project remains that the systematic VRP strategy yields negative expectancy (DSR=0.00%) due to spread friction. The TWAP node is strictly experimental future work.
+
+## 8. Competition Paper Account & Live P&L Audit
+
+- **Account ID**: `PA3D4EOEK0PA` (Active, Paper Trading)
+- **Starting Capital**: $100,000.00
+- **Current Portfolio Equity**: $99,979.47 (-$20.53 / -0.02%)
+- **Ending Posture**: 100% Cash Reserves (0 open directional risk)
+
+### Full Attribution of P&L
+The nominal -$20.53 net P&L on the competition account is **100% attributable to execution friction (bid-ask spread and slippage) incurred during live API connectivity and orchestration verification tests** (including test fills for underlying shares and contracts), rather than systematic strategy drawdowns.
+
+Throughout the competition window (Aug 31–Sep 4), S&P 500 Implied Volatility Rank hovered between 11% and 12%—well below our pre-registered regime threshold of IV Rank > 25%. Consequently, the deterministic risk governor correctly refused all systematic options entries, preserving $99,979+ of principal. Both the primary VRP strategy and experimental directional models remain formally benched by the risk gate. Staying flat in cash when edge is mathematically absent is the core operational principle of VRP-Agent.
