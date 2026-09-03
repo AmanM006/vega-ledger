@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Lenis from "lenis";
 import {
+  ShieldAlert,
   ShieldCheck,
   Cpu,
   Activity,
@@ -10,12 +11,15 @@ import {
   TrendingUp,
   RefreshCw,
   ExternalLink,
-  ChevronDown,
   Terminal,
   Database,
   Lock,
   Layers,
-  Code2
+  Code2,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Play
 } from "lucide-react";
 
 interface Position {
@@ -62,13 +66,14 @@ interface LogEntry {
 
 const ETHERSCAN_TX = "0x711b6ea9f659a094a8c929c5f6fdd707ccb6c50de2e8c3d3e76515df94d64daf";
 
-export default function Dashboard() {
+export default function TerminalDashboard() {
   const [mounted, setMounted] = useState(false);
   const [accountData, setAccountData] = useState<{ account?: Record<string, string>; positions?: Position[]; orders?: Order[] } | null>(null);
   const [logData, setLogData] = useState<{ entries?: LogEntry[]; total?: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const lenisRef = useRef<Lenis | null>(null);
+  const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>(0);
 
   const fetchAll = async () => {
     try {
@@ -91,15 +96,13 @@ export default function Dashboard() {
     setLastRefresh(new Date());
     fetchAll();
 
-    // Initialize Lenis Smooth Scroll
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
     });
-    lenisRef.current = lenis;
 
     function raf(time: number) {
       lenis.raf(time);
@@ -107,27 +110,19 @@ export default function Dashboard() {
     }
     requestAnimationFrame(raf);
 
-    const interval = setInterval(fetchAll, 30000);
+    const interval = setInterval(fetchAll, 25000);
     return () => {
       clearInterval(interval);
       lenis.destroy();
     };
   }, []);
 
-  const scrollToTelemetry = () => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo("#telemetry", { offset: -20 });
-    } else {
-      document.getElementById("telemetry")?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm font-mono tracking-widest uppercase">Initializing Vega Ledger...</p>
+      <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 font-mono text-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <span>INITIALIZING WORKSTATION...</span>
         </div>
       </div>
     );
@@ -144,264 +139,217 @@ export default function Dashboard() {
   const pnlColor = pnl >= 0 ? "text-emerald-400" : "text-rose-400";
   const pnlPrefix = pnl >= 0 ? "+" : "";
 
+  const selectedBlock = logEntries[selectedBlockIndex] || logEntries[0];
+
   return (
-    <div className="min-h-screen bg-black text-zinc-200 selection:bg-emerald-500/20 selection:text-emerald-300 font-[family-name:var(--font-space-grotesk)] relative">
-      {/* Dynamic Background Noise & Mesh */}
-      <div className="fixed inset-0 bg-grid-pattern opacity-40 pointer-events-none z-0" />
-      <div className="fixed inset-0 glow-mesh pointer-events-none z-0" />
+    <div className="min-h-screen bg-black text-zinc-300 selection:bg-emerald-500/20 selection:text-emerald-300 font-[family-name:var(--font-jetbrains-mono)] flex flex-col antialiased">
+      {/* Dynamic Background Noise */}
+      <div className="fixed inset-0 bg-grid-pattern opacity-30 pointer-events-none z-0" />
 
-      {/* Top Floating Glass Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-900/80 bg-black/60 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-mono font-bold text-sm text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-              VL
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-white text-base">VEGA LEDGER</span>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                  VRP-Agent
-                </span>
-              </div>
-              <p className="text-[11px] text-zinc-500 font-mono">Alpaca AI Hackathon · ID: PA3D4EOEK0PA</p>
-            </div>
+      {/* TOP DENSE WORKSTATION HEADER */}
+      <header className="sticky top-0 z-50 border-b border-zinc-900 bg-black/95 backdrop-blur-md px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        {/* Brand & Account Identifier */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#10b981]" />
+            <h1 className="font-bold tracking-tight text-white font-mono text-sm">VEGA LEDGER</h1>
+            <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+              TERMINAL v2.4
+            </span>
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-950/80 border border-zinc-800 text-xs text-zinc-400 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>LIVE ORCHESTRATION</span>
-            </div>
-            <button
-              onClick={fetchAll}
-              disabled={loading}
-              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-950 hover:bg-zinc-900 transition font-mono active:scale-95 cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-emerald-400" : ""}`} />
-              <span className="hidden md:inline">Sync</span>
-            </button>
-            <span className="text-[11px] text-zinc-600 font-mono hidden lg:inline">
-              {lastRefresh ? lastRefresh.toLocaleTimeString() : "..."}
+          <span className="text-zinc-700">|</span>
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+            <span className="text-zinc-500 uppercase">Account:</span>
+            <span className="text-white font-bold bg-zinc-900/90 px-2 py-0.5 rounded border border-zinc-800">
+              PA3D4EOEK0PA
+            </span>
+            <span className="text-emerald-400 text-[10px] border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+              COMPETITION VERIFIED
             </span>
           </div>
         </div>
-      </nav>
 
-      {/* ========================================================== */}
-      {/* 100VH HERO SECTION */}
-      {/* ========================================================== */}
-      <section className="min-h-screen pt-20 pb-12 flex flex-col justify-between max-w-7xl mx-auto px-6 relative z-10">
-        {/* Top Badges */}
-        <div className="pt-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 text-xs font-mono mb-6 backdrop-blur-sm">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>INSTITUTIONAL QUANTITATIVE RISK GOVERNOR</span>
+        {/* Protocol Badges / Logos */}
+        <div className="hidden xl:flex items-center gap-3 text-[10px] text-zinc-400 border border-zinc-900 bg-zinc-950/60 px-3 py-1 rounded-md">
+          <div className="flex items-center gap-1.5">
+            <Activity className="w-3 h-3 text-amber-400" />
+            <span>ALPACA API</span>
           </div>
-
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.05] max-w-4xl">
-            Autonomous execution. <br />
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">
-              Mathematical refusal.
-            </span>
-          </h1>
-          <p className="mt-5 text-zinc-400 text-base sm:text-lg max-w-2xl leading-relaxed">
-            A multi-agent options & momentum architecture governed by Deflated Sharpe Ratio (DSR) statistical gates and cryptographically anchored to Ethereum Sepolia.
-          </p>
+          <span className="text-zinc-800">·</span>
+          <div className="flex items-center gap-1.5">
+            <Lock className="w-3 h-3 text-blue-400" />
+            <span>ETH SEPOLIA</span>
+          </div>
+          <span className="text-zinc-800">·</span>
+          <div className="flex items-center gap-1.5">
+            <Layers className="w-3 h-3 text-purple-400" />
+            <span>LANGGRAPH</span>
+          </div>
+          <span className="text-zinc-800">·</span>
+          <div className="flex items-center gap-1.5">
+            <Cpu className="w-3 h-3 text-emerald-400" />
+            <span>SCIKIT-LEARN</span>
+          </div>
+          <span className="text-zinc-800">·</span>
+          <div className="flex items-center gap-1.5">
+            <Terminal className="w-3 h-3 text-pink-400" />
+            <span>FASTMCP</span>
+          </div>
         </div>
 
-        {/* Hero KPIs Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 my-8">
-          <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md shadow-2xl relative overflow-hidden group hover:border-zinc-700 transition">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
-            <p className="text-[11px] font-mono uppercase text-zinc-500 tracking-wider">Portfolio Equity</p>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1">
-              ${equity.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </p>
-            <div className="mt-3 flex items-center gap-1.5 text-xs font-mono">
-              <span className={`font-semibold ${pnlColor}`}>
-                {pnlPrefix}${pnl.toFixed(2)}
-              </span>
-              <span className="text-zinc-600">net P&L</span>
-            </div>
-          </div>
+        {/* Right Tools & Sync */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-500 hidden sm:inline">
+            SYNC: {lastRefresh ? lastRefresh.toLocaleTimeString() : "--:--:--"}
+          </span>
+          <button
+            onClick={fetchAll}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 transition active:scale-95 cursor-pointer"
+          >
+            <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin text-emerald-400" : ""}`} />
+            <span>REFRESH</span>
+          </button>
+          <a
+            href={`https://sepolia.etherscan.io/tx/${ETHERSCAN_TX}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 text-emerald-400 transition"
+          >
+            <span>ETHERSCAN</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      </header>
 
-          <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md shadow-2xl relative overflow-hidden group hover:border-zinc-700 transition">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl pointer-events-none" />
-            <p className="text-[11px] font-mono uppercase text-zinc-500 tracking-wider">Buying Power (4x Margin)</p>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-zinc-100 mt-1">
-              ${(parseFloat(acc?.buying_power ?? "400000") || 400000).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </p>
-            <div className="mt-3 flex items-center gap-1.5 text-xs font-mono text-zinc-500">
-              <span>Cash: ${(parseFloat(acc?.cash ?? "100000") || 100000).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
-            </div>
+      {/* TOP FINANCIAL TICKER STRIP */}
+      <section className="border-b border-zinc-900 bg-zinc-950/80 px-4 py-2 text-xs relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">Total Equity</p>
+            <p className="font-bold text-white text-sm tracking-tight">${equity.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
           </div>
-
-          <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md shadow-2xl relative overflow-hidden group hover:border-zinc-700 transition">
-            <p className="text-[11px] font-mono uppercase text-zinc-500 tracking-wider">Market Volatility (VIX)</p>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mt-1">
-              {(latestEntry?.market_data?.vix_now ?? 15.54).toFixed(2)}
-            </p>
-            <div className="mt-3 flex items-center gap-1.5 text-xs font-mono text-zinc-500">
-              <span>IV Rank: {(latestEntry?.market_data?.iv_rank ?? 11.8).toFixed(1)}%</span>
-              <span className="text-rose-400/90 text-[10px]">(Unfavorable VRP)</span>
-            </div>
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">Net Return</p>
+            <p className={`font-bold text-sm ${pnlColor}`}>{pnlPrefix}${pnl.toFixed(2)}</p>
           </div>
-
-          <div className="p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md shadow-2xl relative overflow-hidden group hover:border-zinc-700 transition">
-            <p className="text-[11px] font-mono uppercase text-zinc-500 tracking-wider">Active ML Signal</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400">
-                {latestEntry?.ml_momentum?.signal?.signal ?? "BUY"}
-              </span>
-              <span className="text-xs font-mono text-zinc-400">
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">Cash Reserve</p>
+            <p className="font-bold text-zinc-300 text-sm">${(parseFloat(acc?.cash ?? "100000") || 100000).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">Buying Power (4x)</p>
+            <p className="font-bold text-zinc-300 text-sm">${(parseFloat(acc?.buying_power ?? "400000") || 400000).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">SPY Spot</p>
+            <p className="font-bold text-white text-sm">${(latestEntry?.market_data?.spy_price ?? 765.55).toFixed(2)}</p>
+          </div>
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">VIX Level</p>
+            <p className="font-bold text-amber-400 text-sm">{(latestEntry?.market_data?.vix_now ?? 15.54).toFixed(2)}</p>
+          </div>
+          <div className="border-r border-zinc-900/80 pr-2">
+            <p className="text-[10px] uppercase text-zinc-500">IV Rank</p>
+            <p className="font-bold text-zinc-300 text-sm">{(latestEntry?.market_data?.iv_rank ?? 11.8).toFixed(1)}%</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase text-zinc-500">ML Momentum</p>
+            <div className="flex items-center gap-1.5 font-bold text-emerald-400 text-sm">
+              <span>{latestEntry?.ml_momentum?.signal?.signal ?? "BUY"}</span>
+              <span className="text-[10px] font-normal text-zinc-500">
                 ({(((latestEntry?.ml_momentum?.signal?.confidence ?? 0.491) * 100)).toFixed(1)}%)
               </span>
             </div>
-            <div className="mt-3 flex items-center gap-1.5 text-xs font-mono text-emerald-400/90">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Random Forest momentum active</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 100VH Section Logos / Technology Marquee */}
-        <div className="border-t border-zinc-900/80 pt-6 pb-2">
-          <p className="text-[11px] font-mono uppercase text-zinc-600 tracking-widest text-center mb-4">
-            Integrated Ecosystem & Protocols
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-75 grayscale hover:grayscale-0 transition duration-500">
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Activity className="w-4 h-4 text-yellow-400" />
-              <span>ALPACA TRADING API</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Lock className="w-4 h-4 text-blue-400" />
-              <span>ETHEREUM SEPOLIA (L1)</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Layers className="w-4 h-4 text-purple-400" />
-              <span>LANGGRAPH ORCHESTRATION</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              <span>SCIKIT-LEARN ML</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Terminal className="w-4 h-4 text-pink-400" />
-              <span>FASTMCP PROTOCOL</span>
-            </div>
-            <div className="flex items-center gap-2.5 text-zinc-300 font-mono text-xs font-semibold">
-              <Code2 className="w-4 h-4 text-teal-400" />
-              <span>NEXT.JS 16 APPS</span>
-            </div>
-          </div>
-
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={scrollToTelemetry}
-              className="flex items-center gap-2 text-xs font-mono text-zinc-500 hover:text-zinc-300 transition py-2 px-4 rounded-full border border-zinc-800/80 hover:border-zinc-700 bg-zinc-950/60 cursor-pointer"
-            >
-              <span>Explore Telemetry & Audit Logs</span>
-              <ChevronDown className="w-3.5 h-3.5 animate-bounce" />
-            </button>
           </div>
         </div>
       </section>
 
-      {/* ========================================================== */}
-      {/* TELEMETRY SECTION (Smooth scroll target) */}
-      {/* ========================================================== */}
-      <div id="telemetry" className="max-w-7xl mx-auto px-6 py-16 space-y-12 relative z-10">
-        {/* Section: Live Execution & Position Data */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Active Positions */}
-          <div className="rounded-2xl bg-zinc-950/90 border border-zinc-800/80 p-6 backdrop-blur-xl shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-semibold tracking-wide uppercase text-zinc-300 font-mono">Live Positions ({positions.length})</h3>
+      {/* WORKSPACE MULTI-PANEL GRID */}
+      <main className="flex-1 p-4 grid grid-cols-1 lg:grid-cols-12 gap-4 relative z-10 max-w-[1700px] w-full mx-auto">
+        {/* ========================================================================= */}
+        {/* LEFT COLUMN: LIVE EXECUTION, POSITIONS & ALPACA ORDERS (4 COLS) */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-4 space-y-4 flex flex-col">
+          {/* Active Positions Panel */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-3.5 flex-1 flex flex-col">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-900 text-xs">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Active Positions ({positions.length})</span>
               </div>
-              <span className="text-[11px] font-mono text-zinc-500">Auto-hedged via Alpaca</span>
+              <span className="text-[10px] text-zinc-500">Auto-Hedged</span>
             </div>
 
             {positions.length === 0 ? (
-              <div className="h-44 flex items-center justify-center border border-dashed border-zinc-800/80 rounded-xl text-center p-6 text-zinc-500 font-mono text-xs">
-                No active positions. Capital secured in cash reserves.
+              <div className="py-8 text-center text-zinc-600 text-xs border border-dashed border-zinc-900 rounded-lg">
+                NO OPEN POSITIONS · 100% CAPITAL SECURED IN CASH
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-xs">
-                  <thead className="border-b border-zinc-800 text-zinc-500 uppercase text-[10px]">
-                    <tr>
-                      <th className="pb-3 font-medium">Asset</th>
-                      <th className="pb-3 font-medium text-right">Qty</th>
-                      <th className="pb-3 font-medium text-right">Market Val</th>
-                      <th className="pb-3 font-medium text-right">Unrealized P&L</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-900">
-                    {positions.map((p, idx) => {
-                      const pl = parseFloat(p?.unrealized_pl ?? "0") || 0;
-                      const mv = parseFloat(p?.market_value ?? "0") || 0;
-                      return (
-                        <tr key={p?.symbol || idx} className="hover:bg-zinc-900/40 transition">
-                          <td className="py-3 text-white font-bold flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                            {p?.symbol}
-                          </td>
-                          <td className="py-3 text-right text-zinc-300">{p?.qty}</td>
-                          <td className="py-3 text-right text-zinc-300">${mv.toFixed(2)}</td>
-                          <td className={`py-3 text-right font-bold ${pl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                            {pl >= 0 ? "+" : ""}${pl.toFixed(2)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="space-y-2 flex-1">
+                {positions.map((p, idx) => {
+                  const pl = parseFloat(p?.unrealized_pl ?? "0") || 0;
+                  const mv = parseFloat(p?.market_value ?? "0") || 0;
+                  return (
+                    <div key={idx} className="p-3 rounded-lg bg-black border border-zinc-900 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-white text-sm flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          {p?.symbol}
+                        </span>
+                        <span className={`font-bold font-mono ${pl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                          {pl >= 0 ? "+" : ""}${pl.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 mt-2 pt-2 border-t border-zinc-900">
+                        <div>Quantity: <span className="text-white">{p?.qty}</span></div>
+                        <div className="text-right">Mkt Value: <span className="text-white">${mv.toFixed(2)}</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* Recent Orders Stream */}
-          <div className="rounded-2xl bg-zinc-950/90 border border-zinc-800/80 p-6 backdrop-blur-xl shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2.5">
-                <Terminal className="w-4 h-4 text-blue-400" />
-                <h3 className="text-sm font-semibold tracking-wide uppercase text-zinc-300 font-mono">Order Execution Stream</h3>
+          {/* Alpaca Order Execution Book */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-3.5 flex-1 flex flex-col">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-900 text-xs">
+              <div className="flex items-center gap-2">
+                <Activity className="w-3.5 h-3.5 text-blue-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Order Execution Book</span>
               </div>
-              <span className="text-[11px] font-mono text-zinc-500">Last 8 Alpaca Actions</span>
+              <span className="text-[10px] text-zinc-500">Live Alpaca Stream</span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-xs">
-                <thead className="border-b border-zinc-800 text-zinc-500 uppercase text-[10px]">
+              <table className="w-full text-left text-[11px]">
+                <thead className="border-b border-zinc-900 text-zinc-500 text-[10px] uppercase">
                   <tr>
-                    <th className="pb-3 font-medium">Contract / Symbol</th>
-                    <th className="pb-3 font-medium">Side</th>
-                    <th className="pb-3 font-medium text-right">Qty</th>
-                    <th className="pb-3 font-medium text-right">Status</th>
+                    <th className="pb-2">Contract</th>
+                    <th className="pb-2">Side</th>
+                    <th className="pb-2 text-right">Qty</th>
+                    <th className="pb-2 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-900">
-                  {orders.slice(0, 8).map((o, idx) => {
+                <tbody className="divide-y divide-zinc-900/60">
+                  {orders.slice(0, 7).map((o, idx) => {
                     const isBuy = (o?.side ?? "").toLowerCase() === "buy";
                     const isFilled = (o?.status ?? "").toLowerCase() === "filled";
                     return (
-                      <tr key={idx} className="hover:bg-zinc-900/40 transition">
-                        <td className="py-2.5 text-zinc-200 font-medium truncate max-w-[160px]" title={o?.symbol}>
+                      <tr key={idx} className="hover:bg-zinc-900/30">
+                        <td className="py-2 text-zinc-300 font-bold truncate max-w-[130px]" title={o?.symbol}>
                           {o?.symbol}
                         </td>
-                        <td className="py-2.5">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${isBuy ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
+                        <td className="py-2">
+                          <span className={`text-[9px] px-1 py-0.5 rounded font-bold ${isBuy ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"}`}>
                             {(o?.side ?? "").toUpperCase()}
                           </span>
                         </td>
-                        <td className="py-2.5 text-right text-zinc-400">{o?.filled_qty || o?.qty || "0"}</td>
-                        <td className="py-2.5 text-right">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-medium ${isFilled ? "bg-zinc-900 text-emerald-400 border border-emerald-500/30" : "bg-zinc-900 text-zinc-400 border border-zinc-800"}`}>
-                            {(o?.status ?? "SUBMITTED").toUpperCase()}
+                        <td className="py-2 text-right text-zinc-400">{o?.filled_qty || o?.qty || "0"}</td>
+                        <td className="py-2 text-right">
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${isFilled ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-zinc-900 text-zinc-400"}`}>
+                            {(o?.status ?? "SENT").toUpperCase()}
                           </span>
                         </td>
                       </tr>
@@ -413,145 +361,145 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Section: Institutional Quant Matrix (Side by Side) */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 font-bold">Quantitative Model Governance Matrix</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* VRP Strategy (BENCHED BY DSR) */}
-            <div className="rounded-2xl bg-zinc-950/90 border border-rose-950/40 p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 px-3 py-1 bg-rose-500/10 text-rose-400 border-b border-l border-rose-500/20 text-[10px] font-mono font-bold uppercase rounded-bl-xl">
-                Benched by Risk Governor
+        {/* ========================================================================= */}
+        {/* CENTER COLUMN: MODEL GOVERNANCE & QUANT DSR MATRIX (4 COLS) */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-4 space-y-4 flex flex-col">
+          {/* ML Momentum Random Forest Telemetry */}
+          <div className="rounded-xl border border-emerald-950/60 bg-zinc-950 p-4 relative overflow-hidden">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Machine Learning Momentum Engine</span>
               </div>
-              <h3 className="text-base font-bold text-white mb-1">Volatility Risk Premium (VRP) Options Sleeve</h3>
-              <p className="text-xs text-zinc-500 mb-6">Short Implied Volatility via S&P 500 Iron Condors</p>
-
-              <div className="space-y-3 font-mono text-xs">
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Gross Backtest Sharpe Ratio</span>
-                  <span className="text-amber-300 font-bold">+0.89</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Net Sharpe (After $0.48/share friction)</span>
-                  <span className="text-rose-400 font-bold">-0.05</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Deflated Sharpe Ratio (DSR)</span>
-                  <span className="text-rose-400 font-bold">0.00% (Statistically Insignificant)</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-zinc-500">Governor Action</span>
-                  <span className="text-rose-400 font-bold">REFUSED TRADE (CAPITAL PROTECTED)</span>
-                </div>
-              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                ACTIVE ALPHA
+              </span>
             </div>
 
-            {/* ML Momentum Sleeve (ACTIVE) */}
-            <div className="rounded-2xl bg-zinc-950/90 border border-emerald-950/40 p-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500/10 text-emerald-400 border-b border-l border-emerald-500/20 text-[10px] font-mono font-bold uppercase rounded-bl-xl">
-                Active Alpha Sleeve
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Model Architecture</span>
+                <span className="text-white font-bold">Random Forest (Scikit-Learn)</span>
               </div>
-              <h3 className="text-base font-bold text-white mb-1">Random Forest Momentum Sleeve</h3>
-              <p className="text-xs text-zinc-500 mb-6">Scikit-Learn Classifier trained on 5-Year SPY/VIX Rolling Features</p>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Training Window</span>
+                <span className="text-zinc-300">5-Year SPY + VIX Rolling (Dynamic Fit)</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Input Feature Matrix</span>
+                <span className="text-zinc-300">5d/20d Ret, SMA5, SMA20, VIX Momentum</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Predicted Direction</span>
+                <span className="text-emerald-400 font-bold">
+                  {latestEntry?.ml_momentum?.signal?.signal ?? "BUY"} ({(((latestEntry?.ml_momentum?.signal?.confidence ?? 0.491) * 100)).toFixed(1)}% conf)
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5">
+                <span className="text-zinc-500">Execution Action</span>
+                <span className="text-emerald-400 font-bold">1 Share SPY Market Order Executed</span>
+              </div>
+            </div>
+          </div>
 
-              <div className="space-y-3 font-mono text-xs">
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Feature Pipeline</span>
-                  <span className="text-zinc-300">5d/20d Returns, SMA5/20, VIX Momentum</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Classifier Output</span>
-                  <span className="text-emerald-400 font-bold">{latestEntry?.ml_momentum?.signal?.signal ?? "BUY"} ({(((latestEntry?.ml_momentum?.signal?.confidence ?? 0.491) * 100)).toFixed(1)}%)</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-zinc-900">
-                  <span className="text-zinc-500">Execution Status</span>
-                  <span className="text-emerald-400 font-bold">1 Share SPY Market Order Filled</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-zinc-500">Governor Action</span>
-                  <span className="text-emerald-400 font-bold">APPROVED & SUBMITTED</span>
-                </div>
+          {/* VRP Strategy Gate (BENCHED BY DSR) */}
+          <div className="rounded-xl border border-rose-950/60 bg-zinc-950 p-4 relative overflow-hidden">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Volatility Risk Premium (VRP) Gate</span>
+              </div>
+              <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                BENCHED BY RISK GATE
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Target Strategy</span>
+                <span className="text-zinc-300">SPY 4-Leg Iron Condors</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Gross Backtest Sharpe</span>
+                <span className="text-amber-400 font-bold">+0.89</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Friction Net Sharpe ($0.48/sh)</span>
+                <span className="text-rose-400 font-bold">-0.05 (Negative Expectancy)</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-zinc-900/80">
+                <span className="text-zinc-500">Deflated Sharpe Ratio (DSR)</span>
+                <span className="text-rose-400 font-bold">0.00% (Statistically Rejected)</span>
+              </div>
+              <div className="flex justify-between py-1.5">
+                <span className="text-zinc-500">Governor Directive</span>
+                <span className="text-rose-400 font-bold">REFUSED TRADE · STAND DOWN</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Crisis Drawdown Filter Stats */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-4">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-900 text-[11px] font-bold text-zinc-300 uppercase">
+              <span>Historical Crisis Regime Filtering</span>
+              <span className="text-zinc-500">Deterministic Protection</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1">
+              <div className="p-2 rounded bg-black border border-zinc-900">
+                <p className="text-[10px] text-zinc-500">2008 GFC</p>
+                <p className="font-bold text-emerald-400 mt-0.5">-1.09%</p>
+                <p className="text-[9px] text-zinc-600">vs -47% SPY</p>
+              </div>
+              <div className="p-2 rounded bg-black border border-zinc-900">
+                <p className="text-[10px] text-zinc-500">2018 Volmageddon</p>
+                <p className="font-bold text-emerald-400 mt-0.5">-2.13%</p>
+                <p className="text-[9px] text-zinc-600">vs -19% SPY</p>
+              </div>
+              <div className="p-2 rounded bg-black border border-zinc-900">
+                <p className="text-[10px] text-zinc-500">2020 COVID</p>
+                <p className="font-bold text-emerald-400 mt-0.5">-2.14%</p>
+                <p className="text-[9px] text-zinc-600">vs -34% SPY</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Section: Cryptographic Verifiable Decision Log */}
-        <div className="rounded-2xl bg-zinc-950/90 border border-zinc-800/80 p-6 backdrop-blur-xl shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-            <div className="flex items-center gap-2.5">
-              <Database className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-semibold tracking-wide uppercase text-zinc-300 font-mono">
-                Cryptographic Verifiable Decision Log ({logData?.total ?? logEntries.length} Blocks)
-              </h3>
-            </div>
-            <span className="text-xs font-mono text-zinc-500">SHA-256 Hash Chain Structure</span>
-          </div>
-
-          <div className="space-y-3">
-            {logEntries.slice(0, 5).map((item, idx) => {
-              const e = item?.entry;
-              const ml = e?.ml_momentum;
-              const vrp = e?.vrp;
-              const tradeable = vrp?.regime_signal?.tradeable ?? false;
-              const reason = vrp?.regime_signal?.reasons?.[0] ?? "Regime evaluated";
-              const hash = item?.hash ?? "";
-
-              return (
-                <div key={idx} className="p-4 rounded-xl bg-black border border-zinc-900 hover:border-zinc-800 transition text-xs font-mono">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
-                    <div className="flex items-center gap-3">
-                      <span className="text-zinc-500 text-[11px]">{e?.timestamp ? new Date(e.timestamp).toLocaleString() : "Recent"}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 truncate max-w-[200px]">
-                        HASH: {hash.slice(0, 16)}...{hash.slice(-8)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${tradeable ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-zinc-900 text-zinc-400 border border-zinc-800"}`}>
-                        VRP: {tradeable ? "TRADE" : "HOLD"}
-                      </span>
-                      {ml && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                          ML: {ml?.signal?.signal ?? "HOLD"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-zinc-400 text-[11px] pt-2 border-t border-zinc-900/80">
-                    <div>SPY: <span className="text-white">${(e?.market_data?.spy_price ?? 0).toFixed(2)}</span></div>
-                    <div>VIX: <span className="text-white">{(e?.market_data?.vix_now ?? 0).toFixed(2)}</span></div>
-                    <div>IV Rank: <span className="text-white">{(e?.market_data?.iv_rank ?? 0).toFixed(1)}%</span></div>
-                    <div className="truncate text-zinc-500" title={reason}>Reason: {reason}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Section: Ethereum Sepolia Anchor Live Verification */}
-        <div className="rounded-2xl bg-gradient-to-b from-zinc-950 to-black border border-emerald-950/60 p-6 sm:p-8 relative overflow-hidden">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                <Lock className="w-3.5 h-3.5" />
-                <span>ON-CHAIN IMMUTABLE AUDIT TRAIL</span>
+        {/* ========================================================================= */}
+        {/* RIGHT COLUMN: CRYPTOGRAPHIC HASH CHAIN & ON-CHAIN ANCHOR (4 COLS) */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-4 space-y-4 flex flex-col">
+          {/* Ethereum Sepolia Cryptographic Anchor Panel */}
+          <div className="rounded-xl border border-emerald-950/80 bg-zinc-950 p-4 relative overflow-hidden">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-white uppercase text-[11px]">Ethereum Sepolia Cryptographic Anchor</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Ethereum Sepolia Cryptographic Anchor
-              </h3>
-              <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed">
-                The root hash of every agent evaluation cycle is anchored via transaction memo to the Ethereum Sepolia testnet. Any attempt to modify local backtest numbers or paper logs breaks the cryptographic chain.
-              </p>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            </div>
 
-              <div className="pt-2 font-mono text-xs text-zinc-500 space-y-1">
-                <p className="truncate">TX Hash: <span className="text-emerald-400 select-all">{ETHERSCAN_TX}</span></p>
-                <p className="truncate">Root Hash: <span className="text-zinc-300">{logEntries[0]?.hash ?? "f2e73e32e118b1f8c7520108be851c5f256d7a2bbf6c5a6ee562db01b8666d3d"}</span></p>
+            <p className="text-[11px] text-zinc-400 leading-relaxed mb-3">
+              The SHA-256 root hash of the verifiable decision log is anchored via transaction memo to the Ethereum Sepolia blockchain. Any post-hoc edits to trades immediately invalidate the chain.
+            </p>
+
+            <div className="space-y-2 text-[11px] bg-black p-3 rounded-lg border border-zinc-900">
+              <div>
+                <span className="text-zinc-500 block text-[10px] uppercase">Transaction Hash (Sepolia L1):</span>
+                <a
+                  href={`https://sepolia.etherscan.io/tx/${ETHERSCAN_TX}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 font-bold hover:underline break-all"
+                >
+                  {ETHERSCAN_TX}
+                </a>
+              </div>
+              <div className="pt-2 border-t border-zinc-900">
+                <span className="text-zinc-500 block text-[10px] uppercase">Anchored Root Hash:</span>
+                <span className="text-zinc-300 break-all">
+                  {logEntries[0]?.hash || "f2e73e32e118b1f8c7520108be851c5f256d7a2bbf6c5a6ee562db01b8666d3d"}
+                </span>
               </div>
             </div>
 
@@ -559,20 +507,92 @@ export default function Dashboard() {
               href={`https://sepolia.etherscan.io/tx/${ETHERSCAN_TX}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 text-black font-semibold text-xs font-mono hover:bg-emerald-400 transition shadow-[0_0_25px_rgba(16,185,129,0.3)] shrink-0 active:scale-95"
+              className="mt-3 w-full py-2 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center justify-center gap-1.5 transition"
             >
-              <span>Verify on Etherscan</span>
-              <ExternalLink className="w-4 h-4" />
+              <span>INSPECT ON ETHERSCAN</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
-        </div>
 
-        {/* Footer */}
-        <footer className="border-t border-zinc-900 pt-8 pb-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-600">
-          <p>VEGA LEDGER // VRP-AGENT · Alpaca AI Trading Agents Hackathon</p>
-          <p>Official Account: PA3D4EOEK0PA · Built with LangGraph, Scikit-Learn, FastMCP, Next.js</p>
-        </footer>
-      </div>
+          {/* Verifiable Decision Hash Chain Inspector */}
+          <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-4 flex-1 flex flex-col">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <Database className="w-3.5 h-3.5 text-purple-400" />
+                <span className="font-bold text-white uppercase text-[11px]">
+                  Verifiable Decision Log ({logData?.total ?? logEntries.length} Blocks)
+                </span>
+              </div>
+              <span className="text-[10px] text-zinc-500">SHA-256 Immutability</span>
+            </div>
+
+            <div className="space-y-2 overflow-y-auto max-h-[340px] pr-1">
+              {logEntries.map((item, idx) => {
+                const e = item?.entry;
+                const ml = e?.ml_momentum;
+                const vrp = e?.vrp;
+                const tradeable = vrp?.regime_signal?.tradeable ?? false;
+                const reason = vrp?.regime_signal?.reasons?.[0] ?? "Regime evaluated";
+                const isSelected = selectedBlockIndex === idx;
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedBlockIndex(idx)}
+                    className={`p-2.5 rounded-lg border transition cursor-pointer text-[11px] ${
+                      isSelected
+                        ? "bg-zinc-900/90 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                        : "bg-black border-zinc-900 hover:border-zinc-800"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-zinc-500 text-[10px]">
+                        {e?.timestamp ? new Date(e.timestamp).toLocaleTimeString() : `Block #${idx}`}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[9px] px-1 py-0.2 rounded font-bold ${tradeable ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-900 text-zinc-500"}`}>
+                          VRP:{tradeable ? "GO" : "STAND DOWN"}
+                        </span>
+                        {ml && (
+                          <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-blue-500/20 text-blue-400">
+                            ML:{ml.signal?.signal ?? "HOLD"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-zinc-400 text-[10px] font-mono truncate">
+                      HASH: {item?.hash || "Pending..."}
+                    </p>
+                    <p className="text-zinc-500 text-[10px] truncate mt-0.5">
+                      {reason}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* FOOTER TERMINAL STATUS LINE */}
+      <footer className="border-t border-zinc-900 bg-black px-4 py-2 text-[11px] flex flex-wrap items-center justify-between gap-2 text-zinc-500">
+        <div className="flex items-center gap-4">
+          <span className="text-zinc-400 font-bold">CLI COMMANDS:</span>
+          <span>python cli.py daemon</span>
+          <span>·</span>
+          <span>python cli.py run</span>
+          <span>·</span>
+          <span>python cli.py mcp</span>
+          <span>·</span>
+          <span>python cli.py drift</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>ETH SEPOLIA ANCHOR LIVE</span>
+          <span>·</span>
+          <span>ALPACA PA3D4EOEK0PA</span>
+        </div>
+      </footer>
     </div>
   );
 }
