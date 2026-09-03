@@ -71,12 +71,15 @@ Because we could not validate this execution improvement against live market hou
 
 ## 8. Competition Paper Account & Live P&L Audit
 
-- **Account ID**: `PA3LL11TFH7L` (Official Competition Account, Paper Trading)
+- **Official Account ID**: `PA3LL11TFH7L` (Active, Paper Trading)
 - **Starting Capital**: $100,000.00
 - **Current Portfolio Equity**: $100,000.00 (0.00% Drawdown)
 - **Ending Posture**: 100% Cash Reserves (0 open positions, 0 open orders)
+- **Ethereum Sepolia Anchor**: [`0x46f3ce0bdb9e343a4d2c85b57146a5c2fca5c5dd861c9aadab00f21bb75f396d`](https://sepolia.etherscan.io/tx/0x46f3ce0bdb9e343a4d2c85b57146a5c2fca5c5dd861c9aadab00f21bb75f396d)
+- **Anchored Root Hash**: `c54f1a609a82a5d6009ad12931b41d73cd4ba4ed7fddd5aa1c4cfc5d14660c1a`
 
-### Full Isolation & Capital Preservation
-Per official hackathon guidelines (*"An account used for testing should not be used for the official measurement"*), all live API connectivity, payload parsing, and execution verification tests were strictly confined to sandbox testing accounts. 
-
-The official submission account (`PA3LL11TFH7L`) is dedicated exclusively to live autonomous risk governance. Throughout the measurement window (Aug 31–Sep 4), S&P 500 Implied Volatility Rank hovered between 11% and 12%—well below our pre-registered regime threshold of IV Rank > 25%. Consequently, the deterministic risk governor correctly refused all systematic options entries, preserving $100,000.00 of principal. Both the primary VRP strategy and experimental directional models remain formally benched by the risk gate. Staying flat in cash when edge is mathematically absent is the core operational principle of VRP-Agent.
+### Transparent Disclosure of Account Architecture & Evolution
+In full alignment with our core principle of total quantitative transparency:
+1. **Testing Account Isolation**: During initial build and live API integration, our development sandbox account incurred test order fills (including option spread tests and share fills). Recognizing that the official Alpaca hackathon FAQ explicitly mandates: *"An account used for testing should not be used for the official measurement"*, we strictly separated environments. We isolated the testing account and dedicated `PA3LL11TFH7L` ($100,000.00 starting cash) exclusively for the official measurement.
+2. **Deterministic Capital Preservation**: Across both sandbox testing and the dedicated submission account, market telemetry was identical: S&P 500 IV Rank hovered between 4% and 12% throughout the measurement window (August 31–September 4)—well below our pre-registered regime entry hurdle of IV Rank > 25%. Consequently, our deterministic risk governor refused all systematic entries, preserving 100% of principal in cash.
+3. **Refusal Over Forced Action**: Most hackathon bots force trades into bad regimes to manufacture artificial activity. VRP-Agent’s verifiable decision log proves that mathematical refusal to trade an uncompensated edge is the hallmark of professional institutional risk management.

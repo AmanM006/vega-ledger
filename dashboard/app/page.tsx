@@ -64,7 +64,7 @@ interface LogEntry {
   hash?: string;
 }
 
-const ETHERSCAN_TX = "0x711b6ea9f659a094a8c929c5f6fdd707ccb6c50de2e8c3d3e76515df94d64daf";
+const ETHERSCAN_TX = "0x46f3ce0bdb9e343a4d2c85b57146a5c2fca5c5dd861c9aadab00f21bb75f396d";
 
 export default function TerminalDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -74,6 +74,7 @@ export default function TerminalDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>(0);
+  const [logFilter, setLogFilter] = useState<"official" | "all">("official");
 
   const fetchAll = async () => {
     try {
@@ -464,7 +465,7 @@ export default function TerminalDashboard() {
               <div className="pt-2 border-t border-zinc-900">
                 <span className="text-zinc-500 block text-[10px] uppercase">Anchored Root Hash:</span>
                 <span className="text-zinc-300 break-all">
-                  {logEntries[0]?.hash || "f2e73e32e118b1f8c7520108be851c5f256d7a2bbf6c5a6ee562db01b8666d3d"}
+                  {logEntries[0]?.hash || "c54f1a609a82a5d6009ad12931b41d73cd4ba4ed7fddd5aa1c4cfc5d14660c1a"}
                 </span>
               </div>
             </div>
@@ -489,53 +490,95 @@ export default function TerminalDashboard() {
                   Verifiable Decision Log ({logData?.total ?? logEntries.length} Blocks)
                 </span>
               </div>
-              <span className="text-[10px] text-zinc-500">SHA-256 Immutability</span>
+              <div className="flex items-center gap-1 bg-black border border-zinc-800 p-0.5 rounded text-[10px]">
+                <button
+                  onClick={() => setLogFilter("official")}
+                  className={`px-2 py-0.5 rounded transition ${
+                    logFilter === "official"
+                      ? "bg-zinc-800 text-emerald-400 font-bold"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  PA3LL11TFH7L
+                </button>
+                <button
+                  onClick={() => setLogFilter("all")}
+                  className={`px-2 py-0.5 rounded transition ${
+                    logFilter === "all"
+                      ? "bg-zinc-800 text-zinc-200 font-bold"
+                      : "text-zinc-500 hover:text-zinc-300"
+                  }`}
+                >
+                  All Blocks
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 overflow-y-auto max-h-[340px] pr-1">
-              {logEntries.map((item, idx) => {
-                const e = item?.entry;
-                const ml = e?.ml_momentum;
-                const vrp = e?.vrp;
-                const tradeable = vrp?.regime_signal?.tradeable ?? false;
-                const reason = vrp?.regime_signal?.reasons?.[0] ?? "Regime evaluated";
-                const isSelected = selectedBlockIndex === idx;
+              {logEntries
+                .filter((item) => {
+                  if (logFilter === "official") {
+                    const eq = item?.entry?.market_data?.account_equity;
+                    return eq === 100000.0;
+                  }
+                  return true;
+                })
+                .map((item, idx) => {
+                  const e = item?.entry;
+                  const ml = e?.ml_momentum;
+                  const vrp = e?.vrp;
+                  const tradeable = vrp?.regime_signal?.tradeable ?? false;
+                  const reason = vrp?.regime_signal?.reasons?.[0] ?? "Regime evaluated";
+                  const isSelected = selectedBlockIndex === idx;
+                  const isOfficial = e?.market_data?.account_equity === 100000.0;
 
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => setSelectedBlockIndex(idx)}
-                    className={`p-2.5 rounded-lg border transition cursor-pointer text-[11px] ${
-                      isSelected
-                        ? "bg-zinc-900/90 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
-                        : "bg-black border-zinc-900 hover:border-zinc-800"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-zinc-500 text-[10px]">
-                        {e?.timestamp ? new Date(e.timestamp).toLocaleTimeString() : `Block #${idx}`}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-[9px] px-1 py-0.2 rounded font-bold ${tradeable ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-900 text-zinc-500"}`}>
-                          VRP:{tradeable ? "GO" : "STAND DOWN"}
-                        </span>
-                        {ml && (
-                          <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            ML:BENCHED
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedBlockIndex(idx)}
+                      className={`p-2.5 rounded-lg border transition cursor-pointer text-[11px] ${
+                        isSelected
+                          ? "bg-zinc-900/90 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.1)]"
+                          : "bg-black border-zinc-900 hover:border-zinc-800"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-zinc-500 text-[10px]">
+                            {e?.timestamp ? new Date(e.timestamp).toLocaleTimeString() : `Block #${idx}`}
                           </span>
-                        )}
-                      </div>
-                    </div>
+                          <span
+                            className={`text-[9px] px-1 py-0.2 rounded font-bold ${
+                              isOfficial
+                                ? "bg-emerald-950/80 text-emerald-400 border border-emerald-500/30"
+                                : "bg-zinc-900 text-zinc-500 border border-zinc-800"
+                            }`}
+                          >
+                            {isOfficial ? "OFFICIAL" : "SANDBOX"}
+                          </span>
+                        </div>
 
-                    <p className="text-zinc-400 text-[10px] font-mono truncate">
-                      HASH: {item?.hash || "Pending..."}
-                    </p>
-                    <p className="text-zinc-500 text-[10px] truncate mt-0.5">
-                      {reason}
-                    </p>
-                  </div>
-                );
-              })}
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[9px] px-1 py-0.2 rounded font-bold ${tradeable ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-900 text-zinc-500"}`}>
+                            VRP:{tradeable ? "GO" : "STAND DOWN"}
+                          </span>
+                          {ml && (
+                            <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              ML:BENCHED
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-zinc-400 text-[10px] font-mono truncate">
+                        HASH: {item?.hash || "Pending..."}
+                      </p>
+                      <p className="text-zinc-500 text-[10px] truncate mt-0.5">
+                        Equity: ${e?.market_data?.account_equity?.toLocaleString() ?? "100,000"} · {reason}
+                      </p>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>

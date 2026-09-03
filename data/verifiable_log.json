@@ -609,5 +609,68 @@
       }
     },
     "hash": "002786d4ec796b1bfb55e5f9911d68e59f55a32ca977a56b5fa06155dcac46a2"
+  },
+  {
+    "entry": {
+      "timestamp": "2026-09-03T23:18:05.813356+00:00",
+      "market_data": {
+        "spy_price": 772.61,
+        "vix_now": 14.319999694824219,
+        "vix_200dma": 18.303200044631957,
+        "vix_5d_ago": 14.510000228881836,
+        "iv_rank": 4.835036846386548,
+        "iv_percentile": 2.3622047244094486,
+        "account_equity": 100000.0,
+        "daily_pnl": 0.0,
+        "today": "2026-09-04"
+      },
+      "vrp": {
+        "regime_signal": {
+          "tradeable": false,
+          "reasons": [
+            "IV rank too low (rank=5) \u2014 premium too cheap, not worth selling"
+          ]
+        },
+        "risk_evaluation": {
+          "verdict": "reject",
+          "reasons": [
+            "No VRP trade proposed"
+          ]
+        },
+        "execution_result": {
+          "status": "skipped",
+          "reason": [
+            "No VRP trade proposed"
+          ]
+        }
+      },
+      "ml_momentum": {
+        "signal": {
+          "signal": "SELL",
+          "confidence": 0.588,
+          "reason": "RF bearish edge (p=0.59)"
+        },
+        "execution": {
+          "status": "benched",
+          "signal": "SELL",
+          "confidence": 0.588,
+          "reason": [
+            "Directional ML model lacks Deflated Sharpe Ratio (DSR > 0.95) walk-forward proof",
+            "Unhedged directional trade refused by quantitative risk governor"
+          ]
+        }
+      },
+      "earnings": {
+        "setups": [],
+        "risk_evaluations": [],
+        "execution_results": [
+          {
+            "status": "skipped",
+            "reason": "Earnings execution disabled for snapshot protection"
+          }
+        ]
+      }
+    },
+    "hash": "c54f1a609a82a5d6009ad12931b41d73cd4ba4ed7fddd5aa1c4cfc5d14660c1a"
   }
 ]
