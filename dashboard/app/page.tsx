@@ -65,6 +65,7 @@ interface LogEntry {
 }
 
 const ETHERSCAN_TX = "0x46f3ce0bdb9e343a4d2c85b57146a5c2fca5c5dd861c9aadab00f21bb75f396d";
+const ANCHORED_ROOT_HASH = "c54f1a609a82a5d6009ad12931b41d73cd4ba4ed7fddd5aa1c4cfc5d14660c1a";
 
 export default function TerminalDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -464,8 +465,8 @@ export default function TerminalDashboard() {
               </div>
               <div className="pt-2 border-t border-zinc-900">
                 <span className="text-zinc-500 block text-[10px] uppercase">Anchored Root Hash:</span>
-                <span className="text-zinc-300 break-all">
-                  {logEntries[0]?.hash || "c54f1a609a82a5d6009ad12931b41d73cd4ba4ed7fddd5aa1c4cfc5d14660c1a"}
+                <span className="text-zinc-300 break-all font-mono text-[11px]">
+                  {ANCHORED_ROOT_HASH}
                 </span>
               </div>
             </div>
